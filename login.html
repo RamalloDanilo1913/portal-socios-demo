@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión — Portal de Socios | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body class="fondo-banner">
+
+<div class="encabezado">
+  <p class="club">Talleres Filial Capital Federal</p>
+  <h1>Portal de Socios</h1>
+</div>
+
+<div class="tarjeta">
+  <div id="mensaje" class="mensaje"></div>
+
+  <form id="formLogin">
+    <div class="campo">
+      <label for="email">Email</label>
+      <input type="email" id="email" required autocomplete="email">
+    </div>
+    <div class="campo">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="principal" id="btnIngresar">Iniciar sesión</button>
+  </form>
+
+  <div class="separador">o</div>
+
+  <button type="button" class="google" id="btnGoogle">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.83.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.95v2.33A9 9 0 009 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 013.68 9c0-.59.1-1.17.27-1.7V4.97H.95A9 9 0 000 9c0 1.45.35 2.83.95 4.03l3-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+    Continuar con Google
+  </button>
+
+  <a href="registro.html" class="enlace-secundario" id="enlaceRegistro">¿No tenés cuenta todavía? Registrate</a>
+  <a href="recuperar.html" class="enlace-secundario">¿Olvidaste tu contraseña?</a>
+  <a href="https://wa.me/5491100000000" target="_blank" class="whatsapp">¿Problemas para iniciar sesión? Contactanos</a>
+</div>
+
+<script type="module">
+import { supabase, URL_PORTAL, irConTokenPrellenado, volverSeguro } from './supabaseClient.js';
+
+const formLogin = document.getElementById('formLogin');
+const btnIngresar = document.getElementById('btnIngresar');
+const btnGoogle = document.getElementById('btnGoogle');
+const mensaje = document.getElementById('mensaje');
+
+const params = new URLSearchParams(window.location.search);
+const volver = volverSeguro(params.get('volver'));
+if (volver) {
+  document.getElementById('enlaceRegistro').href = 'registro.html?volver=' + encodeURIComponent(volver);
+}
+
+const esPopup = params.get('popup') === '1';
+
+function mostrarError(texto, conBotonBaja = false) {
+  mensaje.className = 'mensaje error';
+  mensaje.innerHTML = texto + (conBotonBaja
+    ? '<br><a class="boton-cartel" href="https://example.com">Ir al sitio de la filial</a>'
+    : '');
+}
+
+function ocultarMensaje() {
+  mensaje.className = 'mensaje';
+  mensaje.innerHTML = '';
+}
+
+async function validarYRedirigir() {
+  const { data: activo, error } = await supabase.rpc('verificar_estado_actual');
+
+  if (error) {
+    mostrarError('No pudimos verificar tu estado. Probá de nuevo en un momento.');
+    return;
+  }
+
+  if (!activo) {
+    await supabase.auth.signOut();
+    mostrarError('Tu vínculo con la filial figura dado de baja, por lo que no podés acceder al portal.', true);
+    return;
+  }
+
+  if (esPopup) {
+    await cerrarPopupConExito();
+    return;
+  }
+
+  if (volver) {
+    await irConTokenPrellenado(volver);
+  } else {
+    window.location.href = URL_PORTAL;
+  }
+}
+
+async function cerrarPopupConExito() {
+  try {
+    if (volver && window.opener) {
+      // acá va la función que genera el token de un solo uso para pasar los datos del socio a otro sitio (no se incluye en el demo)
+      const token = null;
+      window.opener.postMessage({ tipo: 'login-socio-ok', volver, token: token || null }, window.location.origin);
+    } else if (window.opener) {
+      window.opener.postMessage({ tipo: 'login-socio-ok' }, window.location.origin);
+    }
+  } catch (e) {
+    console.error('cerrarPopupConExito: no se pudo avisar a la ventana de origen.', e);
+  }
+  window.close();
+}
+
+async function revisarSesionInicial() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+
+  const { data: perfil } = await supabase
+    .from('perfiles')
+    .select('id')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
+  if (!perfil) {
+    const email = encodeURIComponent(session.user.email || '');
+    const destinoParams = new URLSearchParams();
+    destinoParams.set('email', email);
+    if (volver) destinoParams.set('volver', volver);
+    if (esPopup) destinoParams.set('popup', '1');
+    window.location.href = `registro.html?${destinoParams.toString()}`;
+    return;
+  }
+
+  await validarYRedirigir();
+}
+
+revisarSesionInicial();
+
+formLogin.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  ocultarMensaje();
+  btnIngresar.disabled = true;
+  btnIngresar.textContent = 'Ingresando...';
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  // acá va el control anti fuerza bruta del login (no se incluye en el demo)
+  const puedeIntentar = true;
+  const errorIntentos = null;
+
+  if (errorIntentos) {
+    mostrarError('No pudimos verificar tu acceso. Probá de nuevo en un momento.');
+    btnIngresar.disabled = false;
+    btnIngresar.textContent = 'Iniciar sesión';
+    return;
+  }
+
+  if (!puedeIntentar) {
+    mostrarError('Hubo demasiados intentos fallidos con este email. Esperá 15 minutos antes de volver a intentar, o contactanos por WhatsApp si no fuiste vos.');
+    btnIngresar.disabled = false;
+    btnIngresar.textContent = 'Iniciar sesión';
+    return;
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    // parte del control anti fuerza bruta (no se incluye en el demo)
+    mostrarError('Email o contraseña incorrectos.');
+    btnIngresar.disabled = false;
+    btnIngresar.textContent = 'Iniciar sesión';
+    return;
+  }
+
+  // parte del control anti fuerza bruta (no se incluye en el demo)
+  await validarYRedirigir();
+  btnIngresar.disabled = false;
+  btnIngresar.textContent = 'Iniciar sesión';
+});
+
+btnGoogle.addEventListener('click', async () => {
+  ocultarMensaje();
+
+  if (esPopup) {
+    const destino = window.location.origin + '/login.html?popup=1' + (volver ? '&volver=' + encodeURIComponent(volver) : '');
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: destino } });
+    return;
+  }
+
+  const destino = window.location.origin + '/login.html?popup=1' + (volver ? '&volver=' + encodeURIComponent(volver) : '');
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: destino, skipBrowserRedirect: true },
+  });
+
+  if (error || !data?.url) {
+    mostrarError('No pudimos iniciar el login con Google. Probá de nuevo.');
+    return;
+  }
+
+  const popup = window.open(data.url, 'loginGoogleSocios', 'width=480,height=650');
+  if (!popup) {
+    mostrarError('Tu navegador bloqueó la ventana emergente. Habilitá los pop-ups para este sitio e intentá de nuevo.');
+    return;
+  }
+
+  function onMensaje(e) {
+    if (e.origin !== window.location.origin) return;
+    if (!e.data || e.data.tipo !== 'login-socio-ok') return;
+    window.removeEventListener('message', onMensaje);
+
+    if (e.data.volver) {
+      const separador = e.data.volver.includes('?') ? '&' : '?';
+      const destinoFinal = e.data.token ? `${e.data.volver}${separador}token=${e.data.token}` : e.data.volver;
+      window.location.href = destinoFinal;
+    } else {
+      window.location.href = URL_PORTAL;
+    }
+  }
+  window.addEventListener('message', onMensaje);
+});
+</script>
+
+</body>
+</html>

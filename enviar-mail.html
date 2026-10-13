@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enviar Mail a Socios | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body class="portal">
+
+<div class="nav-superior">
+  <div class="marca">
+    <img class="logo-filial" src="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w1000" alt="Escudo Talleres Filial Capital Federal">
+    <div>
+      Talleres Filial Capital Federal
+      <span>Enviar Mail a Socios</span>
+    </div>
+  </div>
+  <div class="nav-derecha">
+    <a class="acceso-directo" href="portal-de-socios.html?acceso=ok">🏠 Portal</a>
+    <button class="btn-hamburguesa" id="btnHamburguesa" aria-label="Menú">☰</button>
+    <div class="enlaces" id="enlacesNav">
+      <a class="nav-boton" href="https://example.com">Inicio</a>
+      <a class="nav-boton" href="foro.html">Foro de socios</a>
+      <a class="nav-boton salir" href="#" id="btnSalir">Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+
+<div class="contenedor-portal">
+
+  <div class="seccion" id="vistaNoAutorizado" style="display:none;">
+    <h3>No autorizado</h3>
+    <p style="color:var(--gris-texto); font-size:14px;">Esta página es solo para administradores.</p>
+  </div>
+
+  <div class="seccion" id="vistaForm">
+    <h3>Enviar mail a socios</h3>
+    <p style="font-size:13px; color:var(--gris-texto); margin-top:-6px;">
+      Ideal para avisos importantes: elecciones del club, promociones de la tienda, novedades de la filial, etc.
+    </p>
+
+    <div id="mensajeEnvio" class="mensaje"></div>
+
+    <form id="formEnviarMail">
+      <div class="campo">
+        <label>Destinatarios</label>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+          <label style="display:flex; align-items:center; gap:8px; font-weight:400; font-size:14px;">
+            <input type="radio" name="destinatarios" value="todos" checked style="width:auto;">
+            Todos los socios registrados
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-weight:400; font-size:14px;">
+            <input type="radio" name="destinatarios" value="novedades" style="width:auto;">
+            Solo los que activaron "recibir novedades por email"
+          </label>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="asuntoMail">Asunto</label>
+        <input type="text" id="asuntoMail" required placeholder="Ej: Elecciones en el club - Información importante">
+      </div>
+
+      <div class="campo">
+        <label for="cuerpoMail">Mensaje</label>
+        <textarea id="cuerpoMail" required style="min-height:180px;" placeholder="Escribí el contenido del mail..."></textarea>
+      </div>
+
+      <div class="campo">
+        <label for="imagenesMail">Imágenes (opcional, se agregan al final del mail)</label>
+        <input type="file" id="imagenesMail" accept="image/*" multiple>
+      </div>
+
+      <button type="submit" class="principal" id="btnEnviarMail">Enviar mail</button>
+    </form>
+  </div>
+
+  <div class="seccion" id="vistaHistorial" style="display:none;">
+    <h3>Historial de mails enviados</h3>
+    <div id="listaHistorialMails">
+      <p style="color:var(--gris-texto); font-size:14px;">Cargando...</p>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { supabase } from './supabaseClient.js';
+
+let usuario = null;
+
+async function iniciar() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  usuario = session.user;
+
+  const { data: activo } = await supabase.rpc('verificar_estado_actual');
+  if (!activo) {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', usuario.id).single();
+
+  if (perfil?.rol !== 'admin') {
+    document.getElementById('vistaForm').style.display = 'none';
+    document.getElementById('vistaNoAutorizado').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('vistaHistorial').style.display = 'block';
+  cargarHistorial();
+}
+
+async function cargarHistorial() {
+  const cont = document.getElementById('listaHistorialMails');
+  const { data: historial, error } = await supabase
+    .from('historial_mails')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) {
+    cont.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">No pudimos cargar el historial.</p>';
+    return;
+  }
+
+  if (!historial || historial.length === 0) {
+    cont.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">Todavía no enviaste ningún mail.</p>';
+    return;
+  }
+
+  cont.innerHTML = historial.map(h => `
+    <div class="tarjeta-noticia">
+      <div class="meta">
+        ${new Date(h.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        · ${h.destinatarios_tipo === 'todos' ? 'Todos los socios' : 'Solo con novedades'}
+        · ${h.cantidad_enviados} enviados
+      </div>
+      <h4>${escaparHtml(h.asunto)}</h4>
+    </div>
+  `).join('');
+}
+
+function escaparHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto;
+  return div.innerHTML;
+}
+
+document.getElementById('formEnviarMail').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const asunto = document.getElementById('asuntoMail').value.trim();
+  const cuerpo = document.getElementById('cuerpoMail').value.trim();
+  const archivos = document.getElementById('imagenesMail').files;
+  const soloConNovedades = document.querySelector('input[name="destinatarios"]:checked').value === 'novedades';
+
+  const mensaje = document.getElementById('mensajeEnvio');
+  mensaje.className = 'mensaje';
+  mensaje.textContent = '';
+
+  if (!confirm(soloConNovedades
+    ? '¿Confirmás enviar este mail a los socios que activaron recibir novedades?'
+    : '¿Confirmás enviar este mail a TODOS los socios registrados?')) {
+    return;
+  }
+
+  const btn = document.getElementById('btnEnviarMail');
+  btn.disabled = true;
+
+  const urlsImagenes = [];
+  for (let i = 0; i < archivos.length; i++) {
+    btn.textContent = `Subiendo imagen ${i + 1} de ${archivos.length}...`;
+    const archivo = archivos[i];
+    const nombreArchivo = `${crypto.randomUUID()}-${archivo.name}`;
+
+    const { error: errorSubida } = await supabase.storage.from('noticias').upload(nombreArchivo, archivo);
+    if (errorSubida) {
+      mensaje.className = 'mensaje error';
+      mensaje.textContent = 'No pudimos subir una de las imágenes: ' + errorSubida.message;
+      btn.disabled = false;
+      btn.textContent = 'Enviar mail';
+      return;
+    }
+    const { data: urlPublica } = supabase.storage.from('noticias').getPublicUrl(nombreArchivo);
+    urlsImagenes.push(urlPublica.publicUrl);
+  }
+
+  const cuerpoHtml = escaparHtml(cuerpo).replace(/\n/g, '<br>');
+  const imagenesHtml = urlsImagenes.map(url => `<p><img src="${url}" style="max-width:100%; border-radius:8px;"></p>`).join('');
+  const contenidoFinal = `<div>${cuerpoHtml}</div>${imagenesHtml}`;
+
+  btn.textContent = 'Enviando...';
+
+  // acá va la función que envía el mail a todos los socios (no se incluye en el demo)
+  const cantidadEnviados = 0;
+  const error = null;
+
+  btn.disabled = false;
+  btn.textContent = 'Enviar mail';
+
+  if (error) {
+    mensaje.className = 'mensaje error';
+    mensaje.textContent = 'No pudimos enviar el mail: ' + error.message;
+    return;
+  }
+
+  mensaje.className = 'mensaje ok';
+  mensaje.textContent = `¡Listo! Mail enviado a ${cantidadEnviados} destinatarios.`;
+  document.getElementById('formEnviarMail').reset();
+});
+
+const enlacesNav = document.getElementById('enlacesNav');
+document.getElementById('btnHamburguesa').addEventListener('click', (e) => {
+  e.stopPropagation();
+  enlacesNav.classList.toggle('abierto');
+});
+document.addEventListener('click', (e) => {
+  if (!enlacesNav.contains(e.target) && e.target.id !== 'btnHamburguesa') {
+    enlacesNav.classList.remove('abierto');
+  }
+});
+
+document.getElementById('btnSalir').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+iniciar();
+</script>
+
+</body>
+</html>

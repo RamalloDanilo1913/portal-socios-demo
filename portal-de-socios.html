@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de Socios | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body class="portal">
+
+<div class="hero-portal">
+  <img class="hero-portal-img" src="https://drive.google.com/thumbnail?id=1oEZVF8WrnKnw9nasLK6Qhkd997udohD1&sz=w1000" alt="Viajes de la filial">
+
+  <div class="nav-superior">
+    <div class="marca">
+      <img class="logo-filial" src="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w1000" alt="Escudo Talleres Filial Capital Federal">
+      <div>
+        Talleres Filial Capital Federal
+        <span>Portal de Socios</span>
+      </div>
+    </div>
+    <div class="nav-derecha">
+      <a class="acceso-directo" href="foro.html">💬 Foro</a>
+      <div class="campanita-contenedor">
+        <button class="campanita" id="btnCampanita" aria-label="Notificaciones">
+          🔔<span class="badge-campanita oculto" id="badgeCampanita">0</span>
+        </button>
+        <div class="panel-notificaciones" id="panelNotificaciones">
+          <div class="panel-notificaciones-header">
+            Notificaciones
+            <button id="btnMarcarLeidas">Marcar como leídas</button>
+          </div>
+          <div id="listaNotificaciones">
+            <p style="padding:16px; font-size:13px; color:var(--gris-texto);">Cargando...</p>
+          </div>
+        </div>
+      </div>
+      <button class="btn-hamburguesa" id="btnHamburguesa" aria-label="Menú">☰</button>
+      <div class="enlaces" id="enlacesNav">
+        <a class="nav-boton" href="https://example.com">Inicio</a>
+        <a class="nav-boton" href="https://example.com">Tienda</a>
+        <a class="nav-boton" href="https://example.com">Viajes</a>
+        <a class="nav-boton" href="mi-cuenta.html">Mi cuenta</a>
+        <a class="nav-boton oculto" id="enlacePanelAdmin" href="admin.html">Panel de admin</a>
+        <a class="nav-boton salir" href="#" id="btnSalir">Cerrar sesión</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="bienvenida-overlay" id="bienvenida">
+    <h2>¡Bienvenido al Portal de Socios!</h2>
+    <p>Cargando tu información...</p>
+  </div>
+</div>
+
+<div class="barra-tienda">
+  <a href="https://example.com" class="barra-tienda-boton">🛍️ Visitá la tienda</a>
+  <a href="#" id="botonVendedor" class="barra-tienda-boton destacado">Quiero vender</a>
+</div>
+
+<div class="aviso-hoy oculto" id="avisoHoy"></div>
+
+<div class="contenedor-portal">
+
+  <div class="seccion">
+    <h3>Próximos partidos de Talleres</h3>
+    <div id="listaPartidos" class="carrusel-partidos">
+      <p style="color:var(--gris-texto); font-size:14px;">Cargando partidos...</p>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <h3>Noticias de la filial</h3>
+    <div id="listaNoticias">
+      <p style="color:var(--gris-texto); font-size:14px;">Cargando noticias...</p>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <h3>
+      Calendario
+      <span style="display:flex; gap:8px; align-items:center;">
+        <button class="flecha-carrusel" id="btnCalendarioAnterior" aria-label="Anteriores">‹</button>
+        <button class="flecha-carrusel" id="btnCalendarioSiguiente" aria-label="Siguientes">›</button>
+      </span>
+    </h3>
+    <div id="listaCalendario" class="carrusel-calendario">
+      <p style="color:var(--gris-texto); font-size:14px;">Cargando calendario...</p>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <h3>Buzón de sugerencias</h3>
+    <div id="mensajeSugerencia" class="mensaje"></div>
+    <form id="formSugerencia">
+      <div class="campo">
+        <label for="textoSugerencia">Contanos tu idea o inquietud para la filial</label>
+        <textarea id="textoSugerencia" required></textarea>
+      </div>
+      <button type="submit" class="principal">Enviar sugerencia</button>
+    </form>
+  </div>
+
+</div>
+
+<button class="burbuja-chat" id="btnAbrirChat" aria-label="Contactar a la filial">
+  <span class="punto-chat oculto" id="puntoChat"></span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+  </svg>
+</button>
+
+<div class="panel-chat" id="panelChat">
+  <div class="panel-chat-header">
+    <div>
+      <strong id="tituloChatHeader">Contacto con la filial</strong>
+      <span id="subtituloChatHeader">Te respondemos a la brevedad</span>
+    </div>
+    <button id="btnCerrarChat">✕</button>
+  </div>
+  <div id="listaConversaciones" class="oculto"></div>
+  <div id="vistaHilo" class="oculto">
+    <div class="barra-hilo-chat">
+      <button class="volver-conversaciones oculto" id="btnVolverConversaciones">← Volver</button>
+      <button class="finalizar-chat oculto" id="btnFinalizarChat">Finalizar chat</button>
+    </div>
+    <div id="bannerChatFinalizado" class="banner-chat-finalizado oculto">
+      Esta conversación fue finalizada por la filial. Escribí un mensaje nuevo para abrir otra.
+    </div>
+    <div class="mensajes-chat" id="mensajesChat"></div>
+    <form id="formEnviarMensaje" class="form-chat-input">
+      <input type="text" id="textoMensaje" placeholder="Escribí un mensaje..." required autocomplete="off">
+      <button type="submit">➤</button>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from './supabaseClient.js';
+
+let usuario = null;
+let perfil = null;
+let esAdmin = false;
+let mapaNombres = {};
+
+async function iniciar() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  usuario = session.user;
+
+  const { data: activo } = await supabase.rpc('verificar_estado_actual');
+  if (!activo) {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const { data: miPerfil } = await supabase.from('perfiles').select('*').eq('id', usuario.id).single();
+  perfil = miPerfil;
+  esAdmin = perfil?.rol === 'admin';
+
+  document.getElementById('bienvenida').innerHTML = `
+    <h2>¡Bienvenido al Portal de Socios!</h2>
+    <p>Hola, ${perfil?.nombres || ''} 👋</p>
+  `;
+
+  if (esAdmin) document.getElementById('enlacePanelAdmin').classList.remove('oculto');
+
+  await cargarMapaNombres();
+  await cargarNoticias();
+  await cargarEstadoVendedor();
+  await cargarCalendario();
+  await cargarPartidos();
+  pedirPermisoNotificaciones();
+  await cargarNotificaciones();
+  actualizarPuntoChat();
+  setInterval(cargarNotificaciones, 45000);
+
+  if (new URLSearchParams(window.location.search).get('chat') === '1') abrirChat();
+}
+
+async function cargarMapaNombres() {
+  const { data } = await supabase.rpc('perfiles_publicos');
+  mapaNombres = {};
+  (data || []).forEach(p => { mapaNombres[p.id] = p.nombre_completo; });
+}
+
+function formatearFecha(iso) {
+  const f = new Date(iso);
+  return f.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function escaparHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto;
+  return div.innerHTML;
+}
+
+function formatearContenido(texto) {
+  let seguro = escaparHtml(texto);
+  seguro = seguro.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  seguro = seguro.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  return seguro;
+}
+
+let noticiasCache = [];
+let noticiasVisibles = 3;
+
+async function cargarNoticias() {
+  const contenedor = document.getElementById('listaNoticias');
+  const { data: noticias, error } = await supabase
+    .from('publicaciones')
+    .select('*')
+    .eq('tipo', 'noticia')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    contenedor.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">No pudimos cargar las noticias.</p>';
+    return;
+  }
+
+  noticiasCache = noticias || [];
+  noticiasVisibles = 3;
+  renderizarNoticias();
+}
+
+function renderizarNoticias() {
+  const contenedor = document.getElementById('listaNoticias');
+
+  if (noticiasCache.length === 0) {
+    contenedor.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">Todavía no hay noticias publicadas.</p>';
+    return;
+  }
+
+  const visibles = noticiasCache.slice(0, noticiasVisibles);
+  const quedanMas = noticiasVisibles < noticiasCache.length;
+
+  contenedor.innerHTML = visibles.map(n => `
+    <div class="tarjeta-noticia">
+      <div class="meta">${formatearFecha(n.created_at)}${esAdmin ? ' · ' + (mapaNombres[n.autor_id] || 'Filial') : ''}</div>
+      <h4>${escaparHtml(n.titulo)}</h4>
+      <p>${formatearContenido(n.contenido)}</p>
+      ${n.imagenes && n.imagenes.length > 0 ? `
+        <div class="galeria-noticia">
+          ${n.imagenes.map(url => `<a href="${url}" target="_blank"><img src="${url}" alt="Foto de la noticia" loading="lazy"></a>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `).join('') + (quedanMas ? `<button class="secundario" id="btnVerMasNoticias" style="width:100%;">Ver más</button>` : '');
+
+  if (quedanMas) {
+    document.getElementById('btnVerMasNoticias').addEventListener('click', () => {
+      noticiasVisibles += 2;
+      renderizarNoticias();
+    });
+  }
+}
+
+document.getElementById('formSugerencia').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const contenido = document.getElementById('textoSugerencia').value.trim();
+  const { error } = await supabase.from('sugerencias').insert({ contenido, autor_id: usuario.id });
+
+  const msj = document.getElementById('mensajeSugerencia');
+  if (error) {
+    msj.className = 'mensaje error';
+    msj.textContent = 'No pudimos enviar tu sugerencia. Probá de nuevo.';
+  } else {
+    msj.className = 'mensaje ok';
+    msj.textContent = '¡Gracias! Tu sugerencia fue enviada.';
+    document.getElementById('formSugerencia').reset();
+  }
+});
+
+let intervaloChat = null;
+let conversacionActivaId = null;
+const panelChat = document.getElementById('panelChat');
+
+async function abrirChat() {
+  panelChat.classList.add('abierto');
+  if (esAdmin) {
+    document.getElementById('btnVolverConversaciones').classList.remove('oculto');
+    if (!conversacionActivaId) mostrarListaConversaciones();
+    else abrirHilo(conversacionActivaId);
+  } else {
+    conversacionActivaId = usuario.id;
+    abrirHilo(conversacionActivaId);
+  }
+}
+
+async function mostrarListaConversaciones() {
+  document.getElementById('listaConversaciones').classList.remove('oculto');
+  document.getElementById('vistaHilo').classList.add('oculto');
+  document.getElementById('tituloChatHeader').textContent = 'Mensajes de socios';
+  document.getElementById('subtituloChatHeader').textContent = 'Elegí una conversación';
+  clearInterval(intervaloChat);
+
+  const { data: mensajes } = await supabase.from('mensajes_chat').select('*').order('created_at', { ascending: false });
+  const conversaciones = {};
+  (mensajes || []).forEach(m => { if (!conversaciones[m.socio_id]) conversaciones[m.socio_id] = m; });
+  const lista = Object.values(conversaciones);
+  const cont = document.getElementById('listaConversaciones');
+
+  if (lista.length === 0) { cont.innerHTML = '<p style="padding:16px; font-size:13px; color:var(--gris-texto);">No hay conversaciones todavía.</p>'; return; }
+
+  cont.innerHTML = lista.map(m => `
+    <div class="item-conversacion" data-socio="${m.socio_id}">
+      <strong>${escaparHtml(mapaNombres[m.socio_id] || 'Socio')}</strong>
+      <p>${escaparHtml(m.contenido).slice(0, 60)}</p>
+    </div>
+  `).join('');
+  cont.querySelectorAll('.item-conversacion').forEach(item => item.addEventListener('click', () => abrirHilo(item.dataset.socio)));
+}
+
+async function abrirHilo(socioId) {
+  conversacionActivaId = socioId;
+  document.getElementById('listaConversaciones').classList.add('oculto');
+  document.getElementById('vistaHilo').classList.remove('oculto');
+  document.getElementById('tituloChatHeader').textContent = esAdmin ? (mapaNombres[socioId] || 'Socio') : 'Contacto con la filial';
+  document.getElementById('subtituloChatHeader').textContent = esAdmin ? 'Conversación' : 'Te respondemos a la brevedad';
+  if (esAdmin) document.getElementById('btnFinalizarChat').classList.remove('oculto');
+
+  await cargarMensajesHilo();
+  clearInterval(intervaloChat);
+  intervaloChat = setInterval(cargarMensajesHilo, 6000);
+}
+
+async function cargarMensajesHilo() {
+  if (!conversacionActivaId) return;
+  const [{ data: mensajes }, { data: estado }] = await Promise.all([
+    supabase.from('mensajes_chat').select('*').eq('socio_id', conversacionActivaId).order('created_at', { ascending: true }),
+    supabase.from('chat_estado').select('finalizado').eq('socio_id', conversacionActivaId).maybeSingle()
+  ]);
+
+  document.getElementById('bannerChatFinalizado').classList.toggle('oculto', !estado?.finalizado);
+
+  const cont = document.getElementById('mensajesChat');
+  cont.innerHTML = (mensajes || []).map(m => `
+    <div class="burbuja-mensaje ${m.es_admin ? 'de-admin' : 'de-socio'}">${escaparHtml(m.contenido)}</div>
+  `).join('') || '<p style="padding:12px; font-size:13px; color:var(--gris-texto);">Todavía no hay mensajes. ¡Escribí el primero!</p>';
+  cont.scrollTop = cont.scrollHeight;
+
+  const noLeidos = (mensajes || []).filter(m => !m.leida && ((esAdmin && !m.es_admin) || (!esAdmin && m.es_admin)));
+  if (noLeidos.length > 0) {
+    await supabase.from('mensajes_chat').update({ leida: true }).in('id', noLeidos.map(m => m.id));
+    actualizarPuntoChat();
+  }
+}
+
+document.getElementById('btnFinalizarChat').addEventListener('click', async () => {
+  if (!conversacionActivaId || !confirm('¿Dar por finalizada esta conversación?')) return;
+  await supabase.from('chat_estado').upsert({ socio_id: conversacionActivaId, finalizado: true, finalizado_en: new Date().toISOString(), finalizado_por: usuario.id });
+  cargarMensajesHilo();
+});
+
+document.getElementById('formEnviarMensaje').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('textoMensaje');
+  const texto = input.value.trim();
+  if (!texto || !conversacionActivaId) return;
+
+  input.value = '';
+  await supabase.from('mensajes_chat').insert({
+    socio_id: conversacionActivaId,
+    remitente_id: usuario.id,
+    es_admin: esAdmin,
+    contenido: texto
+  });
+  cargarMensajesHilo();
+});
+
+document.getElementById('btnVolverConversaciones').addEventListener('click', () => {
+  document.getElementById('btnFinalizarChat').classList.add('oculto');
+  conversacionActivaId = null;
+  clearInterval(intervaloChat);
+  mostrarListaConversaciones();
+});
+
+document.getElementById('btnAbrirChat').addEventListener('click', () => {
+  if (panelChat.classList.contains('abierto')) {
+    panelChat.classList.remove('abierto');
+    clearInterval(intervaloChat);
+  } else {
+    abrirChat();
+  }
+});
+document.getElementById('btnCerrarChat').addEventListener('click', () => {
+  panelChat.classList.remove('abierto');
+  clearInterval(intervaloChat);
+});
+
+async function cargarEstadoVendedor() {
+  const { data, error } = await supabase.rpc('mi_estado_vendedor').single();
+  const boton = document.getElementById('botonVendedor');
+
+  if (error || !data || !data.vendedor_activo) {
+    boton.textContent = 'Quiero vender';
+    boton.href = 'vender-registro.html';
+    return;
+  }
+
+  boton.textContent = data.tipo_vendedor === 'SERVICIO' ? 'Vender servicio' : 'Vender producto';
+  boton.href = 'https://example.com';
+}
+
+const NOMBRES_MES = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+function diasHastaProximo(dia, mes) {
+  const hoy = new Date();
+  const hoyDiaDelAnio = Date.UTC(2000, hoy.getMonth(), hoy.getDate());
+  let objetivo = Date.UTC(2000, mes - 1, dia);
+  let diff = Math.round((objetivo - hoyDiaDelAnio) / 86400000);
+  if (diff < 0) diff += 365;
+  return diff;
+}
+
+function nombreCortoCumple(nombreCompleto) {
+  const partes = (nombreCompleto || '').trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return '';
+  const primerNombre = partes[0];
+  const apellido = partes[partes.length - 1];
+  if (partes.length === 1) return primerNombre;
+  return `${primerNombre} ${apellido.charAt(0).toUpperCase()}.`;
+}
+
+async function cargarCalendario() {
+  const contenedor = document.getElementById('listaCalendario');
+
+  const [{ data: cumples }, { data: eventos }] = await Promise.all([
+    supabase.rpc('calendario_cumpleanos'),
+    supabase.from('eventos_filial').select('*')
+  ]);
+
+  const items = [
+    ...(cumples || []).map(c => ({ tipo: 'cumpleanos', titulo: `🎂 Cumpleaños de ${c.nombre_completo}`, nombreCompleto: c.nombre_completo, dia: c.dia, mes: c.mes })),
+    ...(eventos || []).map(e => ({ tipo: 'evento', titulo: `📅 ${e.titulo}`, tituloEvento: e.titulo, descripcion: e.descripcion, dia: e.dia, mes: e.mes }))
+  ];
+
+  items.forEach(i => i.diasRestantes = diasHastaProximo(i.dia, i.mes));
+
+  const itemsDeHoy = items.filter(i => i.diasRestantes === 0);
+  renderizarAvisoHoy(itemsDeHoy);
+
+  if (itemsDeHoy.some(i => i.tipo === 'evento')) {
+    supabase.rpc('notificar_eventos_de_hoy').then(({ error }) => {
+      if (error) console.error('No se pudieron generar las notificaciones del evento de hoy:', error);
+    });
+  }
+
+  const itemsDelMes = items.filter(i => i.diasRestantes <= 30);
+  itemsDelMes.sort((a, b) => a.diasRestantes - b.diasRestantes);
+
+  if (itemsDelMes.length === 0) {
+    contenedor.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">No hay fechas en los próximos 30 días.</p>';
+    return;
+  }
+
+  contenedor.innerHTML = itemsDelMes.map(i => `
+    <div class="tarjeta-noticia">
+      <div class="meta">${i.dia} de ${NOMBRES_MES[i.mes]}${i.diasRestantes === 0 ? ' · ¡Hoy!' : ''}</div>
+      <h4>${escaparHtml(i.titulo)}</h4>
+      ${i.descripcion ? `<p>${escaparHtml(i.descripcion)}</p>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderizarAvisoHoy(itemsDeHoy) {
+  const aviso = document.getElementById('avisoHoy');
+
+  if (!itemsDeHoy || itemsDeHoy.length === 0) {
+    aviso.classList.add('oculto');
+    aviso.innerHTML = '';
+    return;
+  }
+
+  aviso.innerHTML = itemsDeHoy.map(i => {
+    const texto = i.tipo === 'cumpleanos'
+      ? `🎂 Hoy es el cumpleaños de ${escaparHtml(nombreCortoCumple(i.nombreCompleto))}`
+      : `📅 Hoy ${escaparHtml(i.tituloEvento)}`;
+    return `<div class="aviso-hoy-item">${texto}</div>`;
+  }).join('');
+  aviso.classList.remove('oculto');
+}
+
+document.getElementById('btnCalendarioAnterior').addEventListener('click', () => {
+  const cont = document.getElementById('listaCalendario');
+  cont.scrollBy({ left: -cont.clientWidth * 0.55, behavior: 'smooth' });
+});
+document.getElementById('btnCalendarioSiguiente').addEventListener('click', () => {
+  const cont = document.getElementById('listaCalendario');
+  cont.scrollBy({ left: cont.clientWidth * 0.55, behavior: 'smooth' });
+});
+
+const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES_LARGO = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+function formatearFechaPartido(fechaStr) {
+  const [anio, mes, dia] = fechaStr.split('-').map(Number);
+  const fecha = new Date(anio, mes - 1, dia);
+  return `${DIAS_SEMANA[fecha.getDay()]} ${dia} de ${MESES_LARGO[mes - 1]}`;
+}
+
+const COLORES_ETIQUETA = {
+  bordo:   { fondo: '#990000', texto: '#ffffff' },
+  blanco:  { fondo: '#ffffff', texto: '#000000' },
+  morado:  { fondo: '#351c75', texto: '#ffffff' }
+};
+function estiloEtiquetaCampeonato(clave) {
+  const c = COLORES_ETIQUETA[clave] || COLORES_ETIQUETA.bordo;
+  const borde = c.fondo === '#ffffff' ? 'border:1px solid rgba(0,0,0,0.2);' : '';
+  return `background:${c.fondo}; color:${c.texto}; ${borde}`;
+}
+
+async function cargarPartidos() {
+  const contenedor = document.getElementById('listaPartidos');
+  const hoy = new Date().toISOString().split('T')[0];
+
+  const { data: partidos, error } = await supabase
+    .from('partidos')
+    .select('*')
+    .gte('fecha', hoy)
+    .order('fecha', { ascending: true });
+
+  if (error) {
+    contenedor.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">No pudimos cargar los partidos.</p>';
+    return;
+  }
+
+  if (!partidos || partidos.length === 0) {
+    contenedor.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">No hay partidos próximos cargados.</p>';
+    return;
+  }
+
+  contenedor.innerHTML = partidos.map(p => {
+    const talleresLocal = p.condicion !== 'Visitante';
+    const nombreLocal = talleresLocal ? 'TALLERES' : p.rival.toUpperCase();
+    const nombreVisitante = talleresLocal ? p.rival.toUpperCase() : 'TALLERES';
+    const escudoLocal = talleresLocal ? p.escudo_talleres : p.escudo_rival;
+    const escudoVisitante = talleresLocal ? p.escudo_rival : p.escudo_talleres;
+    const fondo = escudoLocal || escudoVisitante || '';
+
+    return `
+    <div class="tarjeta-partido">
+      <div class="escudos-fondo" style="--fondo-partido: url('${fondo}')">
+        ${escudoLocal ? `<img src="${escudoLocal}" alt="${escaparHtml(nombreLocal)}">` : `<div class="escudo-placeholder">${escaparHtml(nombreLocal.charAt(0))}</div>`}
+        <span class="vs">VS</span>
+        ${escudoVisitante ? `<img src="${escudoVisitante}" alt="${escaparHtml(nombreVisitante)}">` : `<div class="escudo-placeholder">${escaparHtml(nombreVisitante.charAt(0))}</div>`}
+      </div>
+      <div class="datos-partido">
+        <span class="etiqueta-campeonato" style="${estiloEtiquetaCampeonato(p.etiqueta_color)}">${escaparHtml(p.campeonato || 'Masculino')}</span>
+        <strong>${escaparHtml(nombreLocal)} VS ${escaparHtml(nombreVisitante)}</strong>
+        ${p.estadio ? `
+        <span>${formatearFechaPartido(p.fecha)}</span>
+        <span>${p.hora.slice(0,5)}hs · ${escaparHtml(p.estadio)}</span>
+        ` : `
+        <span>${formatearFechaPartido(p.fecha)} · ${p.hora.slice(0,5)}hs</span>
+        `}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const idsNotificados = new Set(JSON.parse(localStorage.getItem('notis_vistas_' + (usuario?.id || '')) || '[]'));
+
+function pedirPermisoNotificaciones() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+async function cargarNotificaciones() {
+  const { data: notis } = await supabase
+    .from('notificaciones')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    (notis || []).forEach(n => {
+      if (!n.leida && !idsNotificados.has(n.id)) {
+        new Notification(n.titulo, {
+          body: n.mensaje || '',
+          icon: 'https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w128'
+        });
+        idsNotificados.add(n.id);
+      }
+    });
+    localStorage.setItem('notis_vistas_' + usuario.id, JSON.stringify([...idsNotificados]));
+  }
+
+  const lista = document.getElementById('listaNotificaciones');
+  const badge = document.getElementById('badgeCampanita');
+  const noLeidas = (notis || []).filter(n => !n.leida).length;
+
+  if (noLeidas > 0) {
+    badge.textContent = noLeidas;
+    badge.classList.remove('oculto');
+  } else {
+    badge.classList.add('oculto');
+  }
+
+  if (!notis || notis.length === 0) {
+    lista.innerHTML = '<p style="padding:16px; font-size:13px; color:var(--gris-texto);">No tenés notificaciones todavía.</p>';
+    return;
+  }
+
+  lista.innerHTML = notis.map(n => `
+    <div class="item-notificacion ${n.leida ? '' : 'no-leida'}" data-id="${n.id}" data-enlace="${n.enlace || ''}">
+      <strong>${escaparHtml(n.titulo)}</strong>
+      ${n.mensaje ? `<p>${escaparHtml(n.mensaje)}</p>` : ''}
+      <span>${formatearFecha(n.created_at)}</span>
+    </div>
+  `).join('');
+
+  lista.querySelectorAll('.item-notificacion').forEach(item => {
+    item.addEventListener('click', async () => {
+      await supabase.from('notificaciones').update({ leida: true }).eq('id', item.dataset.id);
+      const enlace = item.dataset.enlace;
+      if (enlace) window.location.href = enlace;
+      else cargarNotificaciones();
+    });
+  });
+}
+
+async function marcarTodasLeidas() {
+  await supabase.from('notificaciones').update({ leida: true }).eq('usuario_id', usuario.id).eq('leida', false);
+  cargarNotificaciones();
+}
+document.getElementById('btnMarcarLeidas').addEventListener('click', marcarTodasLeidas);
+
+async function actualizarPuntoChat() {
+  let query = supabase.from('mensajes_chat').select('id', { count: 'exact', head: true }).eq('leida', false);
+  query = esAdmin ? query.eq('es_admin', false) : query.eq('socio_id', usuario.id).eq('es_admin', true);
+  const { count } = await query;
+  document.getElementById('puntoChat').classList.toggle('oculto', !count);
+}
+setInterval(actualizarPuntoChat, 20000);
+
+const panelNotificaciones = document.getElementById('panelNotificaciones');
+document.getElementById('btnCampanita').addEventListener('click', (e) => {
+  e.stopPropagation();
+  panelNotificaciones.classList.toggle('abierto');
+});
+document.addEventListener('click', (e) => {
+  if (!panelNotificaciones.contains(e.target)) panelNotificaciones.classList.remove('abierto');
+});
+
+const enlacesNav = document.getElementById('enlacesNav');
+document.getElementById('btnHamburguesa').addEventListener('click', (e) => {
+  e.stopPropagation();
+  enlacesNav.classList.toggle('abierto');
+});
+document.addEventListener('click', (e) => {
+  if (!enlacesNav.contains(e.target) && e.target.id !== 'btnHamburguesa') {
+    enlacesNav.classList.remove('abierto');
+  }
+});
+
+document.getElementById('btnSalir').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+iniciar();
+</script>
+
+</body>
+</html>

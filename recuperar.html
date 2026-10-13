@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recuperar contraseña — Portal de Socios | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<div class="encabezado">
+  <p class="club">Talleres Filial Capital Federal</p>
+  <h1>Recuperar contraseña</h1>
+</div>
+
+<div class="tarjeta">
+  <div id="mensaje" class="mensaje"></div>
+
+  <form id="formPedirCodigo">
+    <p style="font-size:14px; color:var(--gris-texto); margin-top:0;">
+      Ingresá tu email y te mandamos un código para crear una nueva contraseña.
+    </p>
+    <div class="campo">
+      <label for="email">Email</label>
+      <input type="email" id="email" required autocomplete="email">
+    </div>
+    <button type="submit" class="principal" id="btnPedirCodigo">Enviar código</button>
+  </form>
+
+  <form id="formNuevaPassword" style="display:none;">
+    <p style="font-size:14px; color:var(--gris-texto); margin-top:0;">
+      Revisá tu email y pegá el código de 8 dígitos que te mandamos.
+    </p>
+    <div class="campo">
+      <label for="codigo">Código</label>
+      <input type="text" id="codigo" required inputmode="numeric" maxlength="8" placeholder="12345678">
+    </div>
+    <div class="campo">
+      <label for="passwordNueva">Nueva contraseña</label>
+      <input type="password" id="passwordNueva" required minlength="6" autocomplete="new-password">
+    </div>
+    <div class="campo">
+      <label for="passwordConfirmar">Confirmar nueva contraseña</label>
+      <input type="password" id="passwordConfirmar" required minlength="6" autocomplete="new-password">
+    </div>
+    <button type="submit" class="principal" id="btnCambiar">Crear nueva contraseña</button>
+  </form>
+
+  <a href="login.html" class="enlace-secundario">Volver a iniciar sesión</a>
+</div>
+
+<script type="module">
+import { supabase, URL_PORTAL } from './supabaseClient.js';
+
+const formPedirCodigo = document.getElementById('formPedirCodigo');
+const formNuevaPassword = document.getElementById('formNuevaPassword');
+const btnPedirCodigo = document.getElementById('btnPedirCodigo');
+const btnCambiar = document.getElementById('btnCambiar');
+const mensaje = document.getElementById('mensaje');
+
+let emailEnUso = '';
+
+function mostrarError(texto) {
+  mensaje.className = 'mensaje error';
+  mensaje.textContent = texto;
+}
+function mostrarOk(texto) {
+  mensaje.className = 'mensaje ok';
+  mensaje.textContent = texto;
+}
+function ocultarMensaje() {
+  mensaje.className = 'mensaje';
+  mensaje.textContent = '';
+}
+
+formPedirCodigo.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  ocultarMensaje();
+  btnPedirCodigo.disabled = true;
+  btnPedirCodigo.textContent = 'Enviando...';
+
+  emailEnUso = document.getElementById('email').value.trim();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(emailEnUso);
+
+  btnPedirCodigo.disabled = false;
+  btnPedirCodigo.textContent = 'Enviar código';
+
+  if (error) {
+    mostrarError('No pudimos enviar el código. Probá de nuevo en un momento.');
+    return;
+  }
+
+  mostrarOk('Te mandamos un código a tu email. Puede tardar unos minutos en llegar.');
+  formPedirCodigo.style.display = 'none';
+  formNuevaPassword.style.display = 'block';
+});
+
+formNuevaPassword.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  ocultarMensaje();
+
+  const codigo = document.getElementById('codigo').value.trim();
+  const passwordNueva = document.getElementById('passwordNueva').value;
+  const passwordConfirmar = document.getElementById('passwordConfirmar').value;
+
+  if (passwordNueva !== passwordConfirmar) {
+    mostrarError('Las contraseñas no coinciden.');
+    return;
+  }
+
+  btnCambiar.disabled = true;
+  btnCambiar.textContent = 'Verificando código...';
+
+  const { error: errorOtp } = await supabase.auth.verifyOtp({
+    email: emailEnUso,
+    token: codigo,
+    type: 'recovery'
+  });
+
+  if (errorOtp) {
+    mostrarError('El código es incorrecto o venció. Pedí uno nuevo.');
+    btnCambiar.disabled = false;
+    btnCambiar.textContent = 'Crear nueva contraseña';
+    return;
+  }
+
+  const { error: errorUpdate } = await supabase.auth.updateUser({ password: passwordNueva });
+
+  if (errorUpdate) {
+    mostrarError('No pudimos actualizar la contraseña: ' + errorUpdate.message);
+    btnCambiar.disabled = false;
+    btnCambiar.textContent = 'Crear nueva contraseña';
+    return;
+  }
+
+  mostrarOk('¡Contraseña actualizada! Redirigiendo al portal...');
+  setTimeout(() => { window.location.href = URL_PORTAL; }, 1200);
+});
+</script>
+
+</body>
+</html>

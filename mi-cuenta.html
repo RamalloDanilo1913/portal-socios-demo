@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Cuenta | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body class="portal">
+
+<div class="nav-superior">
+  <div class="marca">
+    <img class="logo-filial" src="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w1000" alt="Escudo Talleres Filial Capital Federal">
+    <div>
+      Talleres Filial Capital Federal
+      <span>Mi Cuenta</span>
+    </div>
+  </div>
+  <div class="nav-derecha">
+    <a class="acceso-directo" href="portal-de-socios.html?acceso=ok">🏠 Portal</a>
+    <button class="btn-hamburguesa" id="btnHamburguesa" aria-label="Menú">☰</button>
+    <div class="enlaces" id="enlacesNav">
+      <a class="nav-boton" href="https://example.com">Inicio</a>
+      <a class="nav-boton salir" href="#" id="btnSalir">Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+
+<div class="contenedor-portal">
+
+<div class="carnet-socio" id="carnetSocio">
+  <div class="carnet-top">
+    <div class="carnet-info">
+      <div class="carnet-nombre" id="carnetNombre">—</div>
+        <div class="carnet-subfila">
+        <span class="carnet-socio-label">Socio</span>
+        <span id="carnetTipo">—</span>
+        <span class="carnet-separador">•</span>
+        <span id="carnetCategoria">—</span>
+        </div>
+    </div>
+    <img class="carnet-escudo" src="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w200" alt="Escudo Talleres Filial Capital Federal">
+  </div>
+
+  <div class="carnet-stats">
+    <div class="carnet-stat">
+      <span class="carnet-label">N° de Socio</span>
+      <span class="carnet-valor-grande">
+        <span id="carnetNumero">—</span>
+        <button id="btnCopiarNumero" class="btn-copiar" aria-label="Copiar número de socio">📋</button>
+      </span>
+    </div>
+    <div class="carnet-stat carnet-stat-derecha">
+      <span class="carnet-label">Estado</span>
+      <span class="carnet-valor-grande" id="carnetEstado">—</span>
+    </div>
+  </div>
+</div>
+  <div class="seccion">
+    <h3>
+      Mis datos
+      <button type="button" class="secundario" id="btnEditarDatos">Editar datos</button>
+    </h3>
+    <div id="mensajeDatos" class="mensaje"></div>
+    <form id="formDatos" class="form-bloqueado" id="formDatosWrapper">
+      <div class="fila-doble">
+        <div class="campo">
+          <label for="nombresCuenta">Nombres</label>
+          <input type="text" id="nombresCuenta" required disabled>
+        </div>
+        <div class="campo">
+          <label for="apellidosCuenta">Apellidos</label>
+          <input type="text" id="apellidosCuenta" required disabled>
+        </div>
+      </div>
+      <div class="fila-doble">
+        <div class="campo">
+          <label for="dniCuenta">DNI</label>
+          <input type="text" id="dniCuenta" required disabled>
+        </div>
+        <div class="campo">
+          <label for="fechaNacCuenta">Fecha de nacimiento</label>
+          <input type="date" id="fechaNacCuenta" required disabled>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="emailCuenta">Email</label>
+        <input type="email" id="emailCuenta" required disabled>
+      </div>
+      <div class="campo">
+        <label for="telefonoCuenta">Teléfono</label>
+        <input type="tel" id="telefonoCuenta" required disabled>
+      </div>
+      <div class="checkbox-fila">
+        <input type="checkbox" id="novedadesCuenta" disabled>
+        <label for="novedadesCuenta">Quiero recibir novedades por email</label>
+      </div>
+      <button type="submit" class="principal oculto" id="btnGuardarDatos">Guardar datos</button>
+    </form>
+  </div>
+
+  <div class="seccion">
+    <h3>Contraseña del portal</h3>
+    <p style="font-size:13px; color:var(--gris-texto); margin-top:-6px;" id="textoAyudaClave">
+      Definí una contraseña para poder entrar sin pasar por Google la próxima vez.
+    </p>
+    <div id="mensajeClave" class="mensaje"></div>
+    <form id="formCambiarClave">
+      <div class="fila-doble">
+        <div class="campo">
+          <label for="claveNuevaPortal">Nueva contraseña</label>
+          <input type="password" id="claveNuevaPortal" required minlength="6" autocomplete="new-password">
+        </div>
+        <div class="campo">
+          <label for="claveConfirmarPortal">Confirmar</label>
+          <input type="password" id="claveConfirmarPortal" required minlength="6" autocomplete="new-password">
+        </div>
+      </div>
+      <button type="submit" class="principal" id="btnCambiarClave">Guardar contraseña</button>
+    </form>
+  </div>
+
+  <div class="seccion oculto" id="seccionClaveTienda">
+    <h3>Contraseña de la tienda</h3>
+    <p style="font-size:13px; color:var(--gris-texto); margin-top:-6px;">
+      Es la contraseña que usás para publicar en la tienda de la filial (distinta a la del portal).
+    </p>
+    <a href="recuperar-clave-tienda.html" class="secundario" style="display:inline-block; text-decoration:none;">Cambiar contraseña de la tienda</a>
+  </div>
+
+</div>
+
+<script type="module">
+import { supabase } from './supabaseClient.js';
+
+let usuario = null;
+
+async function iniciar() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  usuario = session.user;
+
+  const { data: activo } = await supabase.rpc('verificar_estado_actual');
+  if (!activo) {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const metodos = usuario.app_metadata?.providers || [];
+  if (metodos.includes('email')) {
+    document.getElementById('textoAyudaClave').textContent = 'Cambiá tu contraseña actual del portal.';
+  }
+
+  const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', usuario.id).single();
+  if (perfil) {
+    document.getElementById('nombresCuenta').value = perfil.nombres || '';
+    document.getElementById('apellidosCuenta').value = perfil.apellidos || '';
+    document.getElementById('dniCuenta').value = perfil.dni || '';
+    document.getElementById('fechaNacCuenta').value = perfil.fecha_nacimiento || '';
+    document.getElementById('emailCuenta').value = perfil.email || '';
+    document.getElementById('telefonoCuenta').value = perfil.telefono || '';
+    document.getElementById('novedadesCuenta').checked = !!perfil.recibir_novedades;
+  }
+
+  const { data: infoSocio } = await supabase.rpc('mi_info_socio').single();
+  if (infoSocio) {
+    document.getElementById('carnetNombre').textContent = infoSocio.nombre_completo || '—';
+    document.getElementById('carnetTipo').textContent = infoSocio.tipo_socio || '—';
+    document.getElementById('carnetCategoria').textContent = infoSocio.categoria || '—';
+    document.getElementById('carnetEstado').textContent = infoSocio.estado || '—';
+    document.getElementById('carnetNumero').textContent = infoSocio.numero_socio || '—';
+  }
+
+  const { data: estadoVendedor } = await supabase.rpc('mi_estado_vendedor').single();
+  if (estadoVendedor?.vendedor_activo) {
+    document.getElementById('seccionClaveTienda').classList.remove('oculto');
+  }
+}
+
+document.getElementById('btnCopiarNumero').addEventListener('click', () => {
+  const numero = document.getElementById('carnetNumero').textContent;
+  navigator.clipboard.writeText(numero).then(() => {
+    const btn = document.getElementById('btnCopiarNumero');
+    const original = btn.textContent;
+    btn.textContent = '✅';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
+});
+
+const camposDatos = ['nombresCuenta', 'apellidosCuenta', 'dniCuenta', 'fechaNacCuenta', 'emailCuenta', 'telefonoCuenta', 'novedadesCuenta'];
+document.getElementById('btnEditarDatos').addEventListener('click', () => {
+  camposDatos.forEach(id => document.getElementById(id).disabled = false);
+  document.getElementById('btnGuardarDatos').classList.remove('oculto');
+  document.getElementById('btnEditarDatos').classList.add('oculto');
+});
+
+document.getElementById('formDatos').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mensaje = document.getElementById('mensajeDatos');
+  mensaje.className = 'mensaje';
+
+  const btn = document.getElementById('btnGuardarDatos');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const { error } = await supabase.from('perfiles').update({
+    nombres: document.getElementById('nombresCuenta').value.trim(),
+    apellidos: document.getElementById('apellidosCuenta').value.trim(),
+    dni: document.getElementById('dniCuenta').value.trim(),
+    fecha_nacimiento: document.getElementById('fechaNacCuenta').value,
+    email: document.getElementById('emailCuenta').value.trim(),
+    telefono: document.getElementById('telefonoCuenta').value.trim(),
+    recibir_novedades: document.getElementById('novedadesCuenta').checked
+  }).eq('id', usuario.id);
+
+  btn.disabled = false;
+  btn.textContent = 'Guardar datos';
+
+  if (error) {
+    mensaje.className = 'mensaje error';
+    mensaje.textContent = 'No pudimos guardar tus datos: ' + error.message;
+    return;
+  }
+
+  mensaje.className = 'mensaje ok';
+  mensaje.textContent = '¡Datos actualizados! (si cambiaste el email, tu acceso sigue siendo con el anterior salvo que también lo cambies en "Contraseña del portal")';
+
+  camposDatos.forEach(id => document.getElementById(id).disabled = true);
+  document.getElementById('btnGuardarDatos').classList.add('oculto');
+  document.getElementById('btnEditarDatos').classList.remove('oculto');
+});
+
+document.getElementById('formCambiarClave').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mensaje = document.getElementById('mensajeClave');
+  mensaje.className = 'mensaje';
+
+  const clave = document.getElementById('claveNuevaPortal').value;
+  const confirmar = document.getElementById('claveConfirmarPortal').value;
+
+  if (clave !== confirmar) {
+    mensaje.className = 'mensaje error';
+    mensaje.textContent = 'Las contraseñas no coinciden.';
+    return;
+  }
+
+  const btn = document.getElementById('btnCambiarClave');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const { error } = await supabase.auth.updateUser({ password: clave });
+
+  btn.disabled = false;
+  btn.textContent = 'Guardar contraseña';
+
+  if (error) {
+    mensaje.className = 'mensaje error';
+    mensaje.textContent = 'No pudimos guardar la contraseña: ' + error.message;
+    return;
+  }
+
+  mensaje.className = 'mensaje ok';
+  mensaje.textContent = '¡Listo! Ya podés entrar con tu email y esta contraseña, sin pasar por Google.';
+  document.getElementById('formCambiarClave').reset();
+});
+
+const enlacesNav = document.getElementById('enlacesNav');
+document.getElementById('btnHamburguesa').addEventListener('click', (e) => {
+  e.stopPropagation();
+  enlacesNav.classList.toggle('abierto');
+});
+document.addEventListener('click', (e) => {
+  if (!enlacesNav.contains(e.target) && e.target.id !== 'btnHamburguesa') {
+    enlacesNav.classList.remove('abierto');
+  }
+});
+
+document.getElementById('btnSalir').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+iniciar();
+</script>
+
+</body>
+</html>

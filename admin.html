@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Administración | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="portal">
+
+<div class="nav-superior">
+  <div class="marca">
+    <img class="logo-filial" src="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w1000" alt="Escudo Talleres Filial Capital Federal">
+    <div>
+      Talleres Filial Capital Federal
+      <span>Panel de Administración</span>
+    </div>
+  </div>
+  <div class="nav-derecha">
+    <a class="acceso-directo" href="portal-de-socios.html?acceso=ok">🏠 Portal</a>
+    <button class="btn-hamburguesa" id="btnHamburguesa" aria-label="Menú">☰</button>
+    <div class="enlaces" id="enlacesNav">
+      <a class="nav-boton" href="https://example.com">Inicio</a>
+      <a class="nav-boton" href="foro.html">Foro (moderar)</a>
+      <a class="nav-boton" href="enviar-mail.html">Enviar mail</a>
+      <a class="nav-boton" href="https://example.com" target="_blank">Admin de la tienda</a>
+      <a class="nav-boton" href="https://example.com" target="_blank">Viajes (admin)</a>
+      <a class="nav-boton salir" href="#" id="btnSalir">Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+
+<div class="contenedor-portal">
+
+  <div class="seccion" id="vistaNoAutorizado" style="display:none;">
+    <h3>No autorizado</h3>
+    <p style="color:var(--gris-texto); font-size:14px;">Esta página es solo para administradores.</p>
+  </div>
+
+  <div id="vistaPanel" style="display:none;">
+
+    <div class="tabs-admin">
+      <button class="tab-admin activo" data-tab="noticias">📰 Noticias</button>
+      <button class="tab-admin" data-tab="socios">👥 Socios</button>
+      <button class="tab-admin" data-tab="padron">🗂️ Padrón</button>
+      <button class="tab-admin" data-tab="partidos">⚽ Partidos</button>
+      <button class="tab-admin" data-tab="calendario">📅 Calendario</button>
+      <button class="tab-admin" data-tab="sugerencias">💡 Sugerencias</button>
+      <button class="tab-admin" data-tab="mensajes">💬 Mensajes</button>
+    </div>
+
+    <div class="panel-tab" id="tab-noticias">
+      <div class="seccion">
+        <h3>
+          Noticias de la filial
+          <button class="secundario" id="btnNuevaPublicacion">+ Nueva publicación</button>
+        </h3>
+        <form id="formNuevaNoticia" class="oculto" style="margin-bottom:16px;">
+          <div class="campo">
+            <label for="tituloNoticia">Título</label>
+            <input type="text" id="tituloNoticia" required>
+          </div>
+          <div class="campo">
+            <label for="contenidoNoticia">Contenido</label>
+            <textarea id="contenidoNoticia" required></textarea>
+            <p style="font-size:11px; color:var(--gris-texto); margin:4px 0 0;">
+              Para <strong>negrita</strong> escribí <code>**así**</code>. Los links (empezando con http:// o https://) se vuelven clickeables solos, no hace falta hacer nada especial.
+            </p>
+          </div>
+          <div class="campo">
+            <label for="fotosNoticia">Agregar fotos (opcional, podés elegir varias)</label>
+            <input type="file" id="fotosNoticia" accept="image/*" multiple>
+          </div>
+          <div id="fotosExistentesNoticia" class="fotos-existentes oculto"></div>
+          <button type="submit" class="principal" id="btnPublicarNoticia">Publicar</button>
+        </form>
+        <div id="listaNoticiasAdmin">
+          <p style="color:var(--gris-texto); font-size:14px;">Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-tab oculto" id="tab-socios">
+      <div class="seccion">
+        <h3>
+          Socios
+          <button type="button" class="secundario" id="btnSubirPadron">📤 Actualizar padrón (Excel)</button>
+        </h3>
+
+        <input type="file" id="inputPadron" accept=".xlsx,.xls" class="oculto">
+
+        <div id="panelPadron" class="panel-padron oculto">
+          <p>Subí el .xlsx que te envían con el padrón mensual. Tiene que tener en la primera fila las columnas: <strong>Socio, Nombre, Forma de pago, Tipo de socio, Categoria, Filial, Estado, UCP</strong>.</p>
+          <div id="resumenPadron" class="resumen-padron oculto"></div>
+        </div>
+
+        <div id="statsSocios" class="stats-socios"></div>
+
+        <div class="barra-filtros">
+          <div class="campo-buscador campo-buscador-flex">
+            <input type="text" id="buscadorSocios" placeholder="🔍 Buscar por nombre, apellido o DNI...">
+          </div>
+          <button type="button" class="boton-filtro-toggle" id="btnToggleFiltrosSocios" aria-expanded="false">
+            <img src="https://cdn-icons-png.flaticon.com/512/6526/6526846.png" alt="">
+            <span>Filtros</span>
+          </button>
+        </div>
+
+        <div id="panelFiltrosSocios" class="panel-filtros oculto">
+          <select id="filtroEstadoSocios" class="selector-filtro">
+            <option value="todos">Estado: todos</option>
+            <option value="activo">🟢 Activos</option>
+            <option value="moroso">🟡 Morosos</option>
+            <option value="baja">🔴 Bajas</option>
+          </select>
+          <select id="filtroTipoSocios" class="selector-filtro">
+            <option value="todos">Tipo: todos</option>
+            <option value="T">T</option>
+            <option value="CAT">CAT</option>
+            <option value="Albiazul">Albiazul</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div id="listaSociosAdmin">
+          <p style="color:var(--gris-texto); font-size:14px;">Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-tab oculto" id="tab-padron">
+      <div class="seccion">
+        <h3>Padrón completo</h3>
+        <p style="font-size:12px; color:var(--gris-texto); margin:-8px 0 16px;">
+          Todos los socios que están hoy en <code>padron_socios</code>, tengan o no cuenta creada en la web.
+        </p>
+
+        <div class="barra-filtros">
+          <div class="campo-buscador campo-buscador-flex">
+            <input type="text" id="buscadorPadron" placeholder="🔍 Buscar por nombre o N° de socio...">
+          </div>
+          <button type="button" class="boton-filtro-toggle" id="btnToggleFiltrosPadron" aria-expanded="false">
+            <img src="https://cdn-icons-png.flaticon.com/512/6526/6526846.png" alt="">
+            <span>Filtros</span>
+          </button>
+        </div>
+
+        <div id="panelFiltrosPadron" class="panel-filtros oculto">
+          <select id="filtroEstadoPadron" class="selector-filtro">
+            <option value="todos">Estado: todos</option>
+            <option value="activo">🟢 Activos</option>
+            <option value="moroso">🟡 Morosos</option>
+            <option value="baja">🔴 Bajas</option>
+            <option value="no_registrado">🚫 No registrados en la web</option>
+          </select>
+          <select id="filtroTipoPadron" class="selector-filtro">
+            <option value="todos">Tipo: todos</option>
+            <option value="T">T</option>
+            <option value="CAT">CAT</option>
+            <option value="Albiazul">Albiazul</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <div id="listaPadronAdmin">
+          <p style="color:var(--gris-texto); font-size:14px;">Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-tab oculto" id="tab-partidos">
+      <div class="seccion">
+        <h3>
+          Próximos partidos de Talleres
+          <button class="secundario" id="btnNuevoPartido">+ Cargar partido</button>
+        </h3>
+        <form id="formNuevoPartido" class="oculto" style="margin-bottom:16px;">
+          <div class="campo">
+            <label for="campeonatoPartido">Campeonato</label>
+            <input type="text" id="campeonatoPartido" list="sugerenciasCampeonato" required placeholder="Ej: Masculino, Femenino, Reserva...">
+            <datalist id="sugerenciasCampeonato">
+              <option value="Masculino"><option value="Femenino"><option value="Reserva">
+            </datalist>
+          </div>
+          <div class="campo">
+            <label for="colorEtiquetaPartido">Color de la etiqueta del torneo</label>
+            <select id="colorEtiquetaPartido">
+              <option value="bordo">Bordó con letras blancas</option>
+              <option value="blanco">Blanco con letras negras</option>
+              <option value="morado">#351c75 con letras blancas</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="rivalPartido">Rival</label>
+            <input type="text" id="rivalPartido" required placeholder="Ej: River Plate">
+          </div>
+          <div class="campo">
+            <label for="condicionPartido">Talleres juega como</label>
+            <select id="condicionPartido" required>
+              <option value="Local">Local</option>
+              <option value="Visitante">Visitante</option>
+            </select>
+          </div>
+          <div class="fila-doble">
+            <div class="campo">
+              <label for="escudoTalleresSelect">Escudo Talleres (opcional)</label>
+              <select id="escudoTalleresSelect"></select>
+              <input type="text" id="escudoTalleres" class="oculto" placeholder="Pegar URL del escudo" style="margin-top:6px;">
+            </div>
+            <div class="campo">
+              <label for="escudoRivalSelect">Escudo rival (opcional)</label>
+              <select id="escudoRivalSelect"></select>
+              <input type="text" id="escudoRival" class="oculto" placeholder="Pegar URL del escudo" style="margin-top:6px;">
+            </div>
+          </div>
+          <div class="fila-doble">
+            <div class="campo">
+              <label for="fechaPartido">Fecha</label>
+              <input type="date" id="fechaPartido" required>
+            </div>
+            <div class="campo">
+              <label for="horaPartido">Hora</label>
+              <input type="time" id="horaPartido" required>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="estadioPartido">Estadio (opcional)</label>
+            <input type="text" id="estadioPartido">
+          </div>
+          <button type="submit" class="principal" id="btnGuardarPartido">Publicar partido</button>
+        </form>
+        <div id="listaPartidosAdmin">
+          <p style="color:var(--gris-texto); font-size:14px;">Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-tab oculto" id="tab-calendario">
+      <div class="seccion">
+        <h3>
+          Calendario de eventos
+          <button class="secundario" id="btnNuevoEvento">+ Nuevo evento</button>
+        </h3>
+        <form id="formNuevoEvento" class="oculto" style="margin-bottom:16px;">
+          <div class="campo">
+            <label for="tituloEvento">Título del evento</label>
+            <input type="text" id="tituloEvento" required placeholder="Ej: Aniversario de la filial">
+          </div>
+          <div class="fila-doble">
+            <div class="campo">
+              <label for="diaEvento">Día</label>
+              <input type="number" id="diaEvento" min="1" max="31" required>
+            </div>
+            <div class="campo">
+              <label for="mesEvento">Mes</label>
+              <select id="mesEvento" required>
+                <option value="1">Enero</option><option value="2">Febrero</option>
+                <option value="3">Marzo</option><option value="4">Abril</option>
+                <option value="5">Mayo</option><option value="6">Junio</option>
+                <option value="7">Julio</option><option value="8">Agosto</option>
+                <option value="9">Septiembre</option><option value="10">Octubre</option>
+                <option value="11">Noviembre</option><option value="12">Diciembre</option>
+              </select>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="descripcionEvento">Descripción (opcional)</label>
+            <input type="text" id="descripcionEvento">
+          </div>
+          <button type="submit" class="principal">Agregar al calendario</button>
+        </form>
+        <p style="font-size:12px; color:var(--gris-texto);">Los cumpleaños se agregan solos, acá solo se ven y se cargan los eventos manuales.</p>
+        <div id="listaEventosAdmin">
+          <p style="color:var(--gris-texto); font-size:14px;">Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-tab oculto" id="tab-sugerencias">
+      <div class="seccion">
+        <h3>Buzón de sugerencias</h3>
+        <div id="listaSugerenciasAdmin">
+          <p style="color:var(--gris-texto); font-size:14px;">Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-tab oculto" id="tab-mensajes">
+      <div class="seccion">
+        <h3 id="tituloMensajes">Mensajes de socios</h3>
+        <button class="secundario oculto" id="btnVolverConversaciones" style="margin-bottom:12px;">← Volver a la lista</button>
+        <button class="secundario oculto" id="btnFinalizarChat" style="margin-bottom:12px;">Finalizar esta conversación</button>
+        <div id="listaConversacionesAdmin"></div>
+        <div id="bannerChatFinalizadoAdmin" class="banner-chat-finalizado oculto">Esta conversación está finalizada.</div>
+        <div class="mensajes-chat oculto" id="mensajesChatAdmin" style="height:340px; border:1px solid #eef1f3; border-radius:8px;"></div>
+        <form id="formEnviarMensajeAdmin" class="form-chat-input oculto" style="border:1px solid #eef1f3; border-top:none; border-radius:0 0 8px 8px;">
+          <input type="text" id="textoMensajeAdmin" placeholder="Escribí una respuesta..." required autocomplete="off">
+          <button type="submit">➤</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { supabase, urlBlobatar } from './supabaseClient.js';
+import { ESCUDOS_ARG } from './escudos-data.js';
+
+let usuario = null;
+let mapaNombres = {};
+
+function escaparHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto;
+  return div.innerHTML;
+}
+function formatearContenido(texto) {
+  let seguro = escaparHtml(texto);
+  seguro = seguro.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  seguro = seguro.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  return seguro;
+}
+function normalizarTelefonoWhatsapp(telefono) {
+  let limpio = (telefono || '').replace(/\D/g, '');
+  if (!limpio) return '';
+  if (limpio.startsWith('549')) limpio = limpio.slice(3);
+  else if (limpio.startsWith('54')) limpio = limpio.slice(2);
+  return '549' + limpio;
+}
+
+function formatearFecha(iso) {
+  return new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatearFechaSinHora(iso) {
+  if (!iso) return '';
+  const partes = String(iso).split('-').map(Number);
+  if (partes.length !== 3 || partes.some(isNaN)) return formatearFecha(iso);
+  const [anio, mes, dia] = partes;
+  return new Date(anio, mes - 1, dia).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function formatearMesAnio(valor) {
+  if (!valor) return '';
+  const texto = String(valor).trim();
+
+  const conBarras = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (conBarras) {
+    const mesIdx = Number(conBarras[2]) - 1;
+    const anio = conBarras[3];
+    return MESES_ES[mesIdx] ? `${MESES_ES[mesIdx].charAt(0).toUpperCase() + MESES_ES[mesIdx].slice(1)} ${anio}` : texto;
+  }
+
+  const fecha = new Date(texto);
+  if (!isNaN(fecha)) {
+    const nombreMes = fecha.toLocaleDateString('es-AR', { month: 'long' });
+    return `${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} ${fecha.getFullYear()}`;
+  }
+
+  return texto;
+}
+
+async function iniciar() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  usuario = session.user;
+
+  const { data: activo } = await supabase.rpc('verificar_estado_actual');
+  if (!activo) { await supabase.auth.signOut(); window.location.href = 'login.html'; return; }
+
+  const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', usuario.id).single();
+  if (perfil?.rol !== 'admin') {
+    document.getElementById('vistaNoAutorizado').style.display = 'block';
+    return;
+  }
+  document.getElementById('vistaPanel').style.display = 'block';
+
+  const { data: nombres } = await supabase.rpc('perfiles_publicos');
+  (nombres || []).forEach(p => { mapaNombres[p.id] = p.nombre_completo; });
+
+  cargarNoticias();
+  cargarSocios();
+  cargarPartidos();
+  cargarEventos();
+  cargarSugerencias();
+}
+
+document.querySelectorAll('.tab-admin').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab-admin').forEach(t => t.classList.remove('activo'));
+    document.querySelectorAll('.panel-tab').forEach(p => p.classList.add('oculto'));
+    tab.classList.add('activo');
+    document.getElementById('tab-' + tab.dataset.tab).classList.remove('oculto');
+    if (tab.dataset.tab === 'mensajes') mostrarListaConversaciones();
+  });
+});
+
+let noticiaEditandoId = null;
+let imagenesExistentesNoticia = [];
+
+async function cargarNoticias() {
+  const cont = document.getElementById('listaNoticiasAdmin');
+  const { data: noticias, error } = await supabase.from('publicaciones').select('*').eq('tipo', 'noticia').order('created_at', { ascending: false });
+
+  if (error) { cont.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">Error al cargar.</p>'; return; }
+  if (!noticias || noticias.length === 0) { cont.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">Todavía no hay noticias.</p>'; return; }
+
+  cont.innerHTML = noticias.map(n => `
+    <div class="tarjeta-noticia" data-id="${n.id}">
+      <div class="meta">${formatearFecha(n.created_at)} · ${mapaNombres[n.autor_id] || 'Filial'}</div>
+      <h4>${escaparHtml(n.titulo)}</h4>
+      <p>${formatearContenido(n.contenido)}</p>
+      ${n.imagenes && n.imagenes.length > 0 ? `<div class="galeria-noticia">${n.imagenes.map(u => `<img src="${u}">`).join('')}</div>` : ''}
+      <div class="acciones-admin">
+        <button class="editar" data-editar="${n.id}">Editar</button>
+        <button class="borrar" data-borrar="${n.id}">Borrar</button>
+      </div>
+    </div>
+  `).join('');
+
+  cont.querySelectorAll('[data-borrar]').forEach(btn => btn.addEventListener('click', () => borrarNoticia(btn.dataset.borrar, noticias)));
+  cont.querySelectorAll('[data-editar]').forEach(btn => btn.addEventListener('click', () => editarNoticia(noticias.find(n => n.id === btn.dataset.editar))));
+}
+
+async function borrarImagenesDeStorage(urls) {
+  if (!urls || urls.length === 0) return;
+  const rutas = urls.map(u => u.split('/noticias/')[1]).filter(Boolean);
+  if (rutas.length > 0) await supabase.storage.from('noticias').remove(rutas);
+}
+
+async function borrarNoticia(id, noticias) {
+  if (!confirm('¿Seguro que querés borrar esta publicación?')) return;
+  const noticia = noticias.find(n => n.id === id);
+  await borrarImagenesDeStorage(noticia?.imagenes);
+  await supabase.from('publicaciones').delete().eq('id', id);
+  cargarNoticias();
+}
+
+function renderizarFotosExistentes() {
+  const cont = document.getElementById('fotosExistentesNoticia');
+  if (imagenesExistentesNoticia.length === 0) { cont.classList.add('oculto'); cont.innerHTML = ''; return; }
+  cont.classList.remove('oculto');
+  cont.innerHTML = '<p style="font-size:12px; color:var(--gris-texto); margin:0 0 6px;">Fotos actuales:</p>' +
+    imagenesExistentesNoticia.map((url, i) => `<div class="foto-existente"><img src="${url}"><button type="button" data-quitar="${i}">✕</button></div>`).join('');
+  cont.querySelectorAll('[data-quitar]').forEach(btn => btn.addEventListener('click', async () => {
+    const [url] = imagenesExistentesNoticia.splice(Number(btn.dataset.quitar), 1);
+    await borrarImagenesDeStorage([url]);
+    renderizarFotosExistentes();
+  }));
+}
+
+function editarNoticia(noticia) {
+  noticiaEditandoId = noticia.id;
+  imagenesExistentesNoticia = [...(noticia.imagenes || [])];
+  document.getElementById('tituloNoticia').value = noticia.titulo;
+  document.getElementById('contenidoNoticia').value = noticia.contenido;
+  document.getElementById('fotosNoticia').value = '';
+  renderizarFotosExistentes();
+  document.getElementById('btnPublicarNoticia').textContent = 'Guardar cambios';
+  document.getElementById('formNuevaNoticia').classList.remove('oculto');
+  document.getElementById('formNuevaNoticia').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+document.getElementById('btnNuevaPublicacion').addEventListener('click', () => {
+  const form = document.getElementById('formNuevaNoticia');
+  const seVaAbrir = form.classList.contains('oculto');
+  form.classList.toggle('oculto');
+  if (seVaAbrir) {
+    noticiaEditandoId = null; imagenesExistentesNoticia = [];
+    form.reset(); renderizarFotosExistentes();
+    document.getElementById('btnPublicarNoticia').textContent = 'Publicar';
+  }
+});
+
+document.getElementById('formNuevaNoticia').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const titulo = document.getElementById('tituloNoticia').value.trim();
+  const contenido = document.getElementById('contenidoNoticia').value.trim();
+  const archivos = document.getElementById('fotosNoticia').files;
+  const btn = document.getElementById('btnPublicarNoticia');
+  const textoOriginal = noticiaEditandoId ? 'Guardar cambios' : 'Publicar';
+  btn.disabled = true;
+
+  const urlsNuevas = [];
+  for (let i = 0; i < archivos.length; i++) {
+    btn.textContent = `Subiendo foto ${i + 1} de ${archivos.length}...`;
+    const archivo = archivos[i];
+    const nombreArchivo = `${crypto.randomUUID()}-${archivo.name}`;
+    const { error: errSub } = await supabase.storage.from('noticias').upload(nombreArchivo, archivo);
+    if (errSub) { alert('No pudimos subir una foto: ' + errSub.message); btn.disabled = false; btn.textContent = textoOriginal; return; }
+    const { data: urlPub } = supabase.storage.from('noticias').getPublicUrl(nombreArchivo);
+    urlsNuevas.push(urlPub.publicUrl);
+  }
+
+  const imagenesFinales = [...imagenesExistentesNoticia, ...urlsNuevas];
+  btn.textContent = noticiaEditandoId ? 'Guardando...' : 'Publicando...';
+
+  let error;
+  if (noticiaEditandoId) {
+    ({ error } = await supabase.from('publicaciones').update({ titulo, contenido, imagenes: imagenesFinales, updated_at: new Date().toISOString() }).eq('id', noticiaEditandoId));
+  } else {
+    ({ error } = await supabase.from('publicaciones').insert({ tipo: 'noticia', titulo, contenido, autor_id: usuario.id, imagenes: imagenesFinales }));
+  }
+
+  btn.disabled = false; btn.textContent = textoOriginal;
+  if (!error) {
+    noticiaEditandoId = null; imagenesExistentesNoticia = [];
+    document.getElementById('formNuevaNoticia').reset();
+    document.getElementById('formNuevaNoticia').classList.add('oculto');
+    document.getElementById('btnPublicarNoticia').textContent = 'Publicar';
+    cargarNoticias();
+  }
+});
+
+const TABLA_PADRON = 'padron_socios';
+
+const MAPEO_COLUMNAS_PADRON = [
+  { excel: 'socio', campo: 'numero_socio' },
+  { excel: 'nombre', campo: 'nombre' },
+  { excel: 'forma de pago', campo: 'forma_pago' },
+  { excel: 'tipo de socio', campo: 'tipo_socio' },
+  { excel: 'categoria', campo: 'categoria' },
+  { excel: 'filial', campo: 'filial' },
+  { excel: 'estado', campo: 'estado' },
+  { excel: 'ucp', campo: 'ultima_cuota_pagada' }
+];
+
+const TEXTO_ESTADO_BAJA = 'Baja';
+
+function clasificarEstado(estadoTexto) {
+  const t = normalizarTexto(estadoTexto);
+  if (t === 'activo') return 'activo';
+  if (t === normalizarTexto(TEXTO_ESTADO_BAJA)) return 'baja';
+  return 'moroso';
+}
+
+function formatearValorCelda(valor) {
+  if (valor instanceof Date && !isNaN(valor)) {
+    const dd = String(valor.getDate()).padStart(2, '0');
+    const mm = String(valor.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}/${valor.getFullYear()}`;
+  }
+  return (valor ?? '').toString().trim();
+}
+
+function normalizarTexto(t) {
+  return (t ?? '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function obtenerGrupoTipo(tipoSocioTexto) {
+  const primeraPalabra = (tipoSocioTexto || '').toString().trim().split(/\s+/)[0] || '';
+  const t = normalizarTexto(primeraPalabra);
+  if (t === 't') return 'T';
+  if (t === 'cat') return 'CAT';
+  if (t === 'albiazul') return 'Albiazul';
+  return 'Otro';
+}
+
+let sociosCache = [];
+let padronCache = [];
+let padronPorNumero = {};
+let perfilesPorNumero = {};
+let filasPadronParaCargar = null;
+let totalFilasPadron = 0;
+let errorLecturaPadron = null;
+let filtroEstadoSocios = 'todos';
+let filtroTipoSocios = 'todos';
+let filtroEstadoPadron = 'todos';
+let filtroTipoPadron = 'todos';
+
+async function cargarSocios() {
+  const cont = document.getElementById('listaSociosAdmin');
+
+  const [{ data: perfiles, error: errorPerfiles }, { data: padron, error: errorPadron }] = await Promise.all([
+    supabase.from('perfiles').select('*').order('apellidos', { ascending: true }),
+    supabase.from(TABLA_PADRON).select('*')
+  ]);
+
+  if (errorPerfiles) {
+    cont.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">No pudimos cargar los socios.</p>';
+    return;
+  }
+
+  padronCache = padron || [];
+  padronPorNumero = {};
+  padronCache.forEach(p => { if (p.numero_socio) padronPorNumero[String(p.numero_socio).trim()] = p; });
+  totalFilasPadron = padronCache.length;
+  errorLecturaPadron = errorPadron || null;
+  if (errorPadron) {
+    console.warn('No se pudo leer la tabla del padrón (revisar TABLA_PADRON / permisos RLS):', errorPadron.message);
+  }
+
+  sociosCache = perfiles || [];
+  perfilesPorNumero = {};
+  sociosCache.forEach(p => { if (p.numero_socio) perfilesPorNumero[String(p.numero_socio).trim()] = p; });
+
+  document.getElementById('statsSocios').innerHTML = `
+    <span class="chip-stat">📋 Socios actuales (padrón): <strong>${totalFilasPadron}</strong></span>
+    <span class="chip-stat">👤 Socios registrados (app): <strong>${sociosCache.length}</strong></span>
+  `;
+
+  aplicarFiltrosSocios();
+  aplicarFiltrosPadron();
+}
+
+function aplicarFiltrosSocios() {
+  const q = normalizarTexto(document.getElementById('buscadorSocios').value);
+
+  const filtrados = sociosCache.filter(s => {
+    if (q) {
+      const nombreCompleto = normalizarTexto(`${s.nombres || ''} ${s.apellidos || ''}`);
+      const dni = normalizarTexto(s.dni || '');
+      if (!nombreCompleto.includes(q) && !dni.includes(q)) return false;
+    }
+
+    const infoPadron = s.numero_socio ? padronPorNumero[String(s.numero_socio).trim()] : null;
+
+    if (filtroEstadoSocios !== 'todos') {
+      if (!infoPadron) return false;
+      if (clasificarEstado(infoPadron.estado) !== filtroEstadoSocios) return false;
+    }
+
+    if (filtroTipoSocios !== 'todos') {
+      if (!infoPadron) return false;
+      if (obtenerGrupoTipo(infoPadron.tipo_socio) !== filtroTipoSocios) return false;
+    }
+
+    return true;
+  });
+
+  renderizarSocios(filtrados);
+}
+
+document.getElementById('filtroEstadoSocios').addEventListener('change', (e) => {
+  filtroEstadoSocios = e.target.value;
+  aplicarFiltrosSocios();
+});
+
+document.getElementById('filtroTipoSocios').addEventListener('change', (e) => {
+  filtroTipoSocios = e.target.value;
+  aplicarFiltrosSocios();
+});
+
+document.getElementById('buscadorSocios').addEventListener('input', aplicarFiltrosSocios);
+
+function aplicarFiltrosPadron() {
+  const inputBuscador = document.getElementById('buscadorPadron');
+  const q = inputBuscador ? normalizarTexto(inputBuscador.value) : '';
+
+  const filtrados = padronCache.filter(p => {
+    if (q) {
+      const nombre = normalizarTexto(p.nombre || '');
+      const numero = normalizarTexto(p.numero_socio || '');
+      if (!nombre.includes(q) && !numero.includes(q)) return false;
+    }
+
+    if (filtroEstadoPadron === 'no_registrado') {
+      const numero = p.numero_socio ? String(p.numero_socio).trim() : '';
+      if (numero && perfilesPorNumero[numero]) return false;
+    } else if (filtroEstadoPadron !== 'todos') {
+      if (clasificarEstado(p.estado) !== filtroEstadoPadron) return false;
+    }
+
+    if (filtroTipoPadron !== 'todos') {
+      if (obtenerGrupoTipo(p.tipo_socio) !== filtroTipoPadron) return false;
+    }
+
+    return true;
+  });
+
+  renderizarPadronCompleto(filtrados);
+}
+
+document.getElementById('filtroEstadoPadron').addEventListener('change', (e) => {
+  filtroEstadoPadron = e.target.value;
+  aplicarFiltrosPadron();
+});
+
+document.getElementById('filtroTipoPadron').addEventListener('change', (e) => {
+  filtroTipoPadron = e.target.value;
+  aplicarFiltrosPadron();
+});
+
+document.getElementById('buscadorPadron').addEventListener('input', aplicarFiltrosPadron);
+
+function armarToggleFiltro(idBoton, idPanel) {
+  const boton = document.getElementById(idBoton);
+  const panel = document.getElementById(idPanel);
+  boton.addEventListener('click', () => {
+    const abierto = !panel.classList.contains('oculto');
+    panel.classList.toggle('oculto');
+    boton.classList.toggle('activo', !abierto);
+    boton.setAttribute('aria-expanded', String(!abierto));
+  });
+}
+armarToggleFiltro('btnToggleFiltrosSocios', 'panelFiltrosSocios');
+armarToggleFiltro('btnToggleFiltrosPadron', 'panelFiltrosPadron');
+
+function renderizarPadronCompleto(lista) {
+  const cont = document.getElementById('listaPadronAdmin');
+
+  if (!lista || lista.length === 0) {
+    cont.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">No se encontraron socios en el padrón con estos filtros.</p>';
+    return;
+  }
+
+  const iconoChevron = `<svg class="icono-chevron" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  cont.innerHTML = lista.map(p => {
+    const nombre = (p.nombre || '').toString().trim() || 'Sin nombre';
+    const inicial = nombre.charAt(0).toUpperCase() || '?';
+    const estadoTexto = (p.estado || '').toString().trim();
+    const claseBadge = clasificarEstado(estadoTexto);
+    const numero = p.numero_socio ? String(p.numero_socio).trim() : '';
+    const registrado = numero ? !!perfilesPorNumero[numero] : false;
+
+    return `
+    <details class="tarjeta-socio">
+      <summary class="socio-cabecera">
+        <div class="avatar-socio"><img src="${urlBlobatar(numero || nombre, 40)}" alt="" loading="lazy"></div>
+        <div class="socio-titulo">
+          <strong>${escaparHtml(nombre)}</strong>
+          <span class="socio-numero">N° de socio: ${escaparHtml(p.numero_socio || '—')}</span>
+        </div>
+        <span class="badge-estado ${claseBadge}">${escaparHtml(estadoTexto || 'Sin estado')}</span>
+        ${iconoChevron}
+      </summary>
+      <div class="socio-cuerpo">
+        <div class="socio-datos-grid">
+          <div class="socio-dato"><span class="etiqueta-dato">Tipo de socio</span><span class="valor-dato">${escaparHtml(p.tipo_socio || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Categoría</span><span class="valor-dato">${escaparHtml(p.categoria || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Filial</span><span class="valor-dato">${escaparHtml(p.filial || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Forma de pago</span><span class="valor-dato">${escaparHtml(p.forma_pago || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Última cuota pagada</span><span class="valor-dato">${escaparHtml(formatearMesAnio(p.ultima_cuota_pagada) || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Cuenta en la web</span><span class="valor-dato">${registrado ? '✅ Registrado' : '🚫 No registrado'}</span></div>
+        </div>
+      </div>
+    </details>`;
+  }).join('');
+}
+
+function renderizarSocios(lista) {
+  const cont = document.getElementById('listaSociosAdmin');
+
+  const avisoSinPadron = (totalFilasPadron === 0)
+    ? `<p class="aviso-padron" style="margin-bottom:14px;">
+        ⚠️ La lectura de <code>${TABLA_PADRON}</code> devolvió 0 filas${errorLecturaPadron ? ` (error: ${escaparHtml(errorLecturaPadron.message)})` : ''}.
+        ${errorLecturaPadron
+          ? 'Revisá el nombre de la tabla y los permisos en <code>padron-supabase-referencia.sql</code>.'
+          : 'Si ya sabés que la tabla tiene socios cargados, esto casi seguro es un permiso (RLS) que bloquea la lectura para el usuario admin — Supabase no tira error en ese caso, simplemente devuelve la lista vacía. Corré la política de "Admins gestionan el padron" que está en <code>padron-supabase-referencia.sql</code> y refrescá esta pestaña.'}
+      </p>`
+    : '';
+
+  if (!lista || lista.length === 0) {
+    cont.innerHTML = avisoSinPadron + '<p style="color:var(--gris-texto); font-size:14px;">No se encontraron socios con estos filtros.</p>';
+    return;
+  }
+
+  const iconoWhatsApp = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.2.2-.4.1-.1 0-.3 0-.4C10.3 9.6 9.9 8.6 9.7 8.2c-.1-.4-.3-.3-.5-.3h-.4c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.5 4 3.5.5.2 1 .4 1.3.5.5.2 1 .1 1.4.1.4-.1 1.3-.5 1.5-1 .2-.5.2-.9.1-1Z"/></svg>`;
+  const iconoChevron = `<svg class="icono-chevron" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  cont.innerHTML = avisoSinPadron + lista.map(s => {
+    const nombreCompleto = `${s.nombres || ''} ${s.apellidos || ''}`.trim() || 'Sin nombre';
+    const inicial = nombreCompleto.charAt(0).toUpperCase() || '?';
+    const telLimpio = normalizarTelefonoWhatsapp(s.telefono);
+    const infoPadron = s.numero_socio ? padronPorNumero[String(s.numero_socio).trim()] : null;
+    const estadoTexto = infoPadron?.estado ? infoPadron.estado.toString().trim() : '';
+    const claseBadge = infoPadron ? clasificarEstado(estadoTexto) : '';
+
+    return `
+    <details class="tarjeta-socio">
+      <summary class="socio-cabecera">
+        <div class="avatar-socio"><img src="${urlBlobatar(s.id || nombreCompleto, 40)}" alt="" loading="lazy"></div>
+        <div class="socio-titulo">
+          <strong>${escaparHtml(nombreCompleto)}</strong>
+          <span class="socio-numero">N° de socio: ${escaparHtml(s.numero_socio || '—')}</span>
+        </div>
+        ${infoPadron
+          ? `<span class="badge-estado ${claseBadge}">${escaparHtml(estadoTexto || 'Sin estado')}</span>`
+          : `<span class="badge-estado">Sin datos del padrón</span>`}
+        ${iconoChevron}
+      </summary>
+      <div class="socio-cuerpo">
+        <div class="socio-datos-grid">
+          <div class="socio-dato"><span class="etiqueta-dato">DNI</span><span class="valor-dato">${escaparHtml(s.dni || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Nacimiento</span><span class="valor-dato">${s.fecha_nacimiento ? formatearFechaSinHora(s.fecha_nacimiento) : '—'}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Celular</span><span class="valor-dato">${escaparHtml(s.telefono || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Email</span><span class="valor-dato">${escaparHtml(s.email || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Tipo de socio</span><span class="valor-dato">${escaparHtml(infoPadron?.tipo_socio || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Categoría</span><span class="valor-dato">${escaparHtml(infoPadron?.categoria || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Filial</span><span class="valor-dato">${escaparHtml(infoPadron?.filial || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Forma de pago</span><span class="valor-dato">${escaparHtml(infoPadron?.forma_pago || '—')}</span></div>
+          <div class="socio-dato"><span class="etiqueta-dato">Última cuota pagada</span><span class="valor-dato">${escaparHtml(formatearMesAnio(infoPadron?.ultima_cuota_pagada) || '—')}</span></div>
+        </div>
+        <div class="socio-acciones">
+          <button type="button" class="secundario" data-copiar-socio="${s.id}">📋 Copiar datos</button>
+          ${telLimpio ? `<a class="boton-whatsapp" href="https://wa.me/${telLimpio}" target="_blank" rel="noopener">${iconoWhatsApp}WhatsApp</a>` : ''}
+        </div>
+      </div>
+    </details>`;
+  }).join('');
+
+  cont.querySelectorAll('[data-copiar-socio]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const s = sociosCache.find(x => x.id === btn.dataset.copiarSocio);
+      if (!s) return;
+      const nombreCompleto = `${s.nombres || ''} ${s.apellidos || ''}`.trim() || 'Sin nombre';
+      const texto = [
+        nombreCompleto,
+        `DNI: ${s.dni || '-'}`,
+        `Nacimiento: ${s.fecha_nacimiento ? formatearFechaSinHora(s.fecha_nacimiento) : '-'}`,
+        `Tel: ${s.telefono || '-'}`,
+        `Email: ${s.email || '-'}`
+      ].join('\n');
+
+      const textoOriginalBoton = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(texto);
+        btn.textContent = '✅ Copiado';
+      } catch (e) {
+        alert('No se pudo copiar automáticamente. Estos son los datos:\n\n' + texto);
+      }
+      setTimeout(() => { btn.textContent = textoOriginalBoton; }, 1500);
+    });
+  });
+}
+
+const inputPadron = document.getElementById('inputPadron');
+const panelPadron = document.getElementById('panelPadron');
+const resumenPadron = document.getElementById('resumenPadron');
+
+document.getElementById('btnSubirPadron').addEventListener('click', () => {
+  panelPadron.classList.remove('oculto');
+  inputPadron.value = '';
+  resumenPadron.classList.add('oculto');
+  resumenPadron.innerHTML = '';
+  filasPadronParaCargar = null;
+  inputPadron.click();
+});
+
+inputPadron.addEventListener('change', async () => {
+  const archivo = inputPadron.files?.[0];
+  if (!archivo) return;
+
+  resumenPadron.classList.remove('oculto');
+  resumenPadron.innerHTML = '<p style="margin:0;">Leyendo el archivo...</p>';
+
+  try {
+    const buffer = await archivo.arrayBuffer();
+    const libro = XLSX.read(buffer, { type: 'array', cellDates: true });
+    const hoja = libro.Sheets[libro.SheetNames[0]];
+    const filasCrudas = XLSX.utils.sheet_to_json(hoja, { defval: '' });
+
+    if (!filasCrudas.length) {
+      resumenPadron.innerHTML = '<p class="aviso-padron">El archivo no tiene filas de datos.</p>';
+      return;
+    }
+
+    const filas = filasCrudas.map(filaCruda => {
+      const filaNormalizada = {};
+      Object.keys(filaCruda).forEach(k => { filaNormalizada[normalizarTexto(k)] = filaCruda[k]; });
+
+      const fila = {};
+      MAPEO_COLUMNAS_PADRON.forEach(({ excel, campo }) => {
+        fila[campo] = formatearValorCelda(filaNormalizada[excel]);
+      });
+      fila.updated_at = new Date().toISOString();
+      return fila;
+    }).filter(f => f.numero_socio);
+
+    const columnasEncontradas = Object.keys(filasCrudas[0] || {}).map(normalizarTexto);
+    const columnasFaltantes = MAPEO_COLUMNAS_PADRON
+      .filter(c => !columnasEncontradas.includes(c.excel))
+      .map(c => c.excel);
+
+    filasPadronParaCargar = filas;
+
+    resumenPadron.innerHTML = `
+      <p style="margin:0;"><strong>${filas.length}</strong> socios encontrados en el archivo (de ${filasCrudas.length} filas leídas).</p>
+      ${columnasFaltantes.length ? `<p class="aviso-padron">⚠️ No encontramos estas columnas en el archivo, van a quedar vacías: ${columnasFaltantes.join(', ')}.</p>` : ''}
+      <label style="display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--gris-texto); margin-top:10px; cursor:pointer;">
+        <input type="checkbox" id="checkMarcarBajas" checked style="margin-top:2px;">
+        <span>Marcar como "${TEXTO_ESTADO_BAJA}" a los socios que ya estaban cargados y <strong>no</strong> aparecen en este archivo (recomendado: así el padrón queda al día con las bajas del mes).</span>
+      </label>
+      <div class="acciones-padron">
+        <button type="button" class="principal" id="btnConfirmarPadron">✅ Confirmar y actualizar ${filas.length} socios</button>
+        <button type="button" class="secundario" id="btnCancelarPadron">Cancelar</button>
+      </div>
+    `;
+
+    document.getElementById('btnCancelarPadron').addEventListener('click', () => {
+      panelPadron.classList.add('oculto');
+      filasPadronParaCargar = null;
+    });
+
+    document.getElementById('btnConfirmarPadron').addEventListener('click', subirPadronASupabase);
+
+  } catch (e) {
+    resumenPadron.innerHTML = `<p class="aviso-padron">No pudimos leer el archivo: ${escaparHtml(e.message || 'error desconocido')}. Verificá que sea un .xlsx válido.</p>`;
+  }
+});
+
+async function subirPadronASupabase() {
+  if (!filasPadronParaCargar || !filasPadronParaCargar.length) return;
+  const btn = document.getElementById('btnConfirmarPadron');
+  const marcarBajas = document.getElementById('checkMarcarBajas')?.checked;
+  btn.disabled = true;
+  btn.textContent = 'Actualizando...';
+
+  const TAMANO_LOTE = 500;
+  let actualizados = 0;
+  let errorFinal = null;
+
+  for (let i = 0; i < filasPadronParaCargar.length; i += TAMANO_LOTE) {
+    const lote = filasPadronParaCargar.slice(i, i + TAMANO_LOTE);
+    const { error } = await supabase.from(TABLA_PADRON).upsert(lote, { onConflict: 'numero_socio' });
+    if (error) { errorFinal = error; break; }
+    actualizados += lote.length;
+  }
+
+  if (errorFinal) {
+    resumenPadron.innerHTML = `<p class="aviso-padron">
+      Se actualizaron ${actualizados} de ${filasPadronParaCargar.length} antes de un error: ${escaparHtml(errorFinal.message)}.<br>
+      Si el error menciona la tabla "${TABLA_PADRON}" o permisos, avisale a quien mantiene el sitio para revisar el nombre de la tabla o los permisos (RLS) de escritura para admins.
+    </p>`;
+    return;
+  }
+
+  let marcadosBaja = 0;
+  if (marcarBajas) {
+    btn.textContent = 'Revisando bajas...';
+    const numerosSubidos = new Set(filasPadronParaCargar.map(f => f.numero_socio));
+    const { data: existentes, error: errorExistentes } = await supabase.from(TABLA_PADRON).select('numero_socio');
+
+    if (!errorExistentes) {
+      const numerosADarDeBaja = (existentes || [])
+        .map(e => e.numero_socio)
+        .filter(n => n && !numerosSubidos.has(n));
+
+      for (let i = 0; i < numerosADarDeBaja.length; i += TAMANO_LOTE) {
+        const lote = numerosADarDeBaja.slice(i, i + TAMANO_LOTE);
+        const { error: errorBaja } = await supabase
+          .from(TABLA_PADRON)
+          .update({ estado: TEXTO_ESTADO_BAJA, updated_at: new Date().toISOString() })
+          .in('numero_socio', lote);
+        if (!errorBaja) marcadosBaja += lote.length;
+      }
+    }
+  }
+
+  resumenPadron.innerHTML = `<p style="margin:0; color:var(--verde-ok);">
+    ✅ Padrón actualizado: ${actualizados} socios cargados/actualizados${marcarBajas ? `, ${marcadosBaja} marcados como "${TEXTO_ESTADO_BAJA}"` : ''}.
+  </p>`;
+  filasPadronParaCargar = null;
+  await cargarSocios();
+  setTimeout(() => { panelPadron.classList.add('oculto'); }, 3000);
+}
+
+let partidoEditandoId = null;
+
+const VALOR_OTRO_ESCUDO = '__otro__';
+
+function poblarSelectEscudo(select) {
+  const optSinEscudo = document.createElement('option');
+  optSinEscudo.value = '';
+  optSinEscudo.textContent = '-- Sin escudo --';
+  select.appendChild(optSinEscudo);
+
+  ESCUDOS_ARG.forEach(grupo => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = grupo.categoria;
+    grupo.items.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = `Escudos_ARG/${grupo.carpeta}/${item.archivo}`;
+      opt.textContent = item.nombre;
+      optgroup.appendChild(opt);
+    });
+    select.appendChild(optgroup);
+  });
+
+  const optOtro = document.createElement('option');
+  optOtro.value = VALOR_OTRO_ESCUDO;
+  optOtro.textContent = 'Otro (pegar enlace) ✎';
+  select.appendChild(optOtro);
+}
+
+function vincularSelectorEscudo(select, input) {
+  poblarSelectEscudo(select);
+  select.addEventListener('change', () => {
+    if (select.value === VALOR_OTRO_ESCUDO) {
+      input.classList.remove('oculto');
+      input.value = '';
+      input.focus();
+    } else {
+      input.classList.add('oculto');
+      input.value = select.value;
+    }
+  });
+}
+
+function establecerValorEscudo(select, input, valor) {
+  const opcionExistente = Array.from(select.options).some(o => o.value === valor);
+  if (valor && opcionExistente) {
+    select.value = valor;
+    input.value = valor;
+    input.classList.add('oculto');
+  } else if (valor) {
+    select.value = VALOR_OTRO_ESCUDO;
+    input.value = valor;
+    input.classList.remove('oculto');
+  } else {
+    select.value = '';
+    input.value = '';
+    input.classList.add('oculto');
+  }
+}
+
+const selectEscudoTalleres = document.getElementById('escudoTalleresSelect');
+const selectEscudoRival = document.getElementById('escudoRivalSelect');
+const inputEscudoTalleres = document.getElementById('escudoTalleres');
+const inputEscudoRival = document.getElementById('escudoRival');
+vincularSelectorEscudo(selectEscudoTalleres, inputEscudoTalleres);
+vincularSelectorEscudo(selectEscudoRival, inputEscudoRival);
+
+const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES_LARGO = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function formatearFechaPartido(f) {
+  const [a, m, d] = f.split('-').map(Number);
+  return `${DIAS_SEMANA[new Date(a, m - 1, d).getDay()]} ${d} de ${MESES_LARGO[m - 1]}`;
+}
+
+const COLORES_ETIQUETA = {
+  bordo:   { fondo: '#990000', texto: '#ffffff' },
+  blanco:  { fondo: '#ffffff', texto: '#000000' },
+  morado:  { fondo: '#351c75', texto: '#ffffff' }
+};
+function estiloEtiquetaCampeonato(clave) {
+  const c = COLORES_ETIQUETA[clave] || COLORES_ETIQUETA.bordo;
+  const borde = c.fondo === '#ffffff' ? 'border:1px solid rgba(0,0,0,0.2);' : '';
+  return `background:${c.fondo}; color:${c.texto}; ${borde}`;
+}
+
+async function cargarPartidos() {
+  const cont = document.getElementById('listaPartidosAdmin');
+  const { data: partidos, error } = await supabase.from('partidos').select('*').order('fecha', { ascending: true });
+  if (error) { cont.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">Error al cargar.</p>'; return; }
+  if (!partidos || partidos.length === 0) { cont.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">No hay partidos cargados.</p>'; return; }
+
+  cont.innerHTML = '<div class="carrusel-partidos">' + partidos.map(p => {
+    const talleresLocal = p.condicion !== 'Visitante';
+    const nombreLocal = talleresLocal ? 'TALLERES' : p.rival.toUpperCase();
+    const nombreVisitante = talleresLocal ? p.rival.toUpperCase() : 'TALLERES';
+    const escudoLocal = talleresLocal ? p.escudo_talleres : p.escudo_rival;
+    const escudoVisitante = talleresLocal ? p.escudo_rival : p.escudo_talleres;
+    const fondo = escudoLocal || escudoVisitante || '';
+    return `
+    <div class="tarjeta-partido">
+      <div class="escudos-fondo" style="--fondo-partido: url('${fondo}')">
+        ${escudoLocal ? `<img src="${escudoLocal}">` : `<div class="escudo-placeholder">${escaparHtml(nombreLocal.charAt(0))}</div>`}
+        <span class="vs">VS</span>
+        ${escudoVisitante ? `<img src="${escudoVisitante}">` : `<div class="escudo-placeholder">${escaparHtml(nombreVisitante.charAt(0))}</div>`}
+      </div>
+      <div class="datos-partido">
+        <span class="etiqueta-campeonato" style="${estiloEtiquetaCampeonato(p.etiqueta_color)}">${escaparHtml(p.campeonato || 'Masculino')}</span>
+        <strong>${escaparHtml(nombreLocal)} VS ${escaparHtml(nombreVisitante)}</strong>
+        ${p.estadio ? `
+        <span>${formatearFechaPartido(p.fecha)}</span>
+        <span>${p.hora.slice(0,5)}hs · ${escaparHtml(p.estadio)}</span>
+        ` : `
+        <span>${formatearFechaPartido(p.fecha)} · ${p.hora.slice(0,5)}hs</span>
+        `}
+      </div>
+      <div class="acciones-admin" style="padding:0 14px 12px;">
+        <button class="editar" data-editar-partido="${p.id}">Editar</button>
+        <button class="borrar" data-borrar-partido="${p.id}">Borrar</button>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+
+  cont.querySelectorAll('[data-borrar-partido]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('¿Borrar este partido?')) return;
+    await supabase.from('partidos').delete().eq('id', btn.dataset.borrarPartido);
+    cargarPartidos();
+  }));
+  cont.querySelectorAll('[data-editar-partido]').forEach(btn => btn.addEventListener('click', () => {
+    const p = partidos.find(x => x.id === btn.dataset.editarPartido);
+    if (!p) return;
+    partidoEditandoId = p.id;
+    document.getElementById('campeonatoPartido').value = p.campeonato || 'Masculino';
+    document.getElementById('colorEtiquetaPartido').value = p.etiqueta_color || 'bordo';
+    document.getElementById('rivalPartido').value = p.rival;
+    document.getElementById('condicionPartido').value = p.condicion || 'Local';
+    establecerValorEscudo(selectEscudoTalleres, inputEscudoTalleres, p.escudo_talleres || '');
+    establecerValorEscudo(selectEscudoRival, inputEscudoRival, p.escudo_rival || '');
+    document.getElementById('fechaPartido').value = p.fecha;
+    document.getElementById('horaPartido').value = p.hora.slice(0,5);
+    document.getElementById('estadioPartido').value = p.estadio || '';
+    document.getElementById('btnGuardarPartido').textContent = 'Guardar cambios';
+    document.getElementById('formNuevoPartido').classList.remove('oculto');
+    document.getElementById('formNuevoPartido').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }));
+}
+
+document.getElementById('btnNuevoPartido').addEventListener('click', () => {
+  const form = document.getElementById('formNuevoPartido');
+  const seVaAbrir = form.classList.contains('oculto');
+  form.classList.toggle('oculto');
+  if (seVaAbrir) {
+    partidoEditandoId = null;
+    form.reset();
+    establecerValorEscudo(selectEscudoTalleres, inputEscudoTalleres, 'Escudos_ARG/primeradivision/talleres.png');
+    establecerValorEscudo(selectEscudoRival, inputEscudoRival, '');
+    document.getElementById('colorEtiquetaPartido').value = 'bordo';
+    document.getElementById('btnGuardarPartido').textContent = 'Publicar partido';
+  }
+});
+
+document.getElementById('formNuevoPartido').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const datos = {
+    campeonato: document.getElementById('campeonatoPartido').value,
+    etiqueta_color: document.getElementById('colorEtiquetaPartido').value,
+    rival: document.getElementById('rivalPartido').value.trim(),
+    condicion: document.getElementById('condicionPartido').value,
+    escudo_talleres: document.getElementById('escudoTalleres').value.trim() || null,
+    escudo_rival: document.getElementById('escudoRival').value.trim() || null,
+    fecha: document.getElementById('fechaPartido').value,
+    hora: document.getElementById('horaPartido').value,
+    estadio: document.getElementById('estadioPartido').value.trim()
+  };
+  let error;
+  if (partidoEditandoId) ({ error } = await supabase.from('partidos').update(datos).eq('id', partidoEditandoId));
+  else ({ error } = await supabase.from('partidos').insert({ ...datos, creado_por: usuario.id }));
+
+  if (error) { alert('No se pudo guardar: ' + error.message); return; }
+  partidoEditandoId = null;
+  document.getElementById('formNuevoPartido').reset();
+  document.getElementById('formNuevoPartido').classList.add('oculto');
+  document.getElementById('btnGuardarPartido').textContent = 'Publicar partido';
+  cargarPartidos();
+});
+
+async function cargarEventos() {
+  const cont = document.getElementById('listaEventosAdmin');
+  const { data: eventos, error } = await supabase.from('eventos_filial').select('*').order('mes').order('dia');
+  if (error) { cont.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">Error al cargar.</p>'; return; }
+  if (!eventos || eventos.length === 0) { cont.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">No hay eventos cargados todavía.</p>'; return; }
+
+  const MESES = ['', 'enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  cont.innerHTML = eventos.map(e => `
+    <div class="tarjeta-noticia">
+      <div class="meta">${e.dia} de ${MESES[e.mes]}</div>
+      <h4>${escaparHtml(e.titulo)}</h4>
+      ${e.descripcion ? `<p>${escaparHtml(e.descripcion)}</p>` : ''}
+      <div class="acciones-admin"><button class="borrar" data-borrar-evento="${e.id}">Borrar</button></div>
+    </div>
+  `).join('');
+
+  cont.querySelectorAll('[data-borrar-evento]').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('¿Borrar este evento?')) return;
+    await supabase.from('eventos_filial').delete().eq('id', btn.dataset.borrarEvento);
+    cargarEventos();
+  }));
+}
+
+document.getElementById('btnNuevoEvento').addEventListener('click', () => {
+  document.getElementById('formNuevoEvento').classList.toggle('oculto');
+});
+document.getElementById('formNuevoEvento').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const { error } = await supabase.from('eventos_filial').insert({
+    titulo: document.getElementById('tituloEvento').value.trim(),
+    dia: parseInt(document.getElementById('diaEvento').value),
+    mes: parseInt(document.getElementById('mesEvento').value),
+    descripcion: document.getElementById('descripcionEvento').value.trim() || null,
+    creado_por: usuario.id
+  });
+  if (!error) {
+    document.getElementById('formNuevoEvento').reset();
+    document.getElementById('formNuevoEvento').classList.add('oculto');
+    cargarEventos();
+  }
+});
+
+async function cargarSugerencias() {
+  const cont = document.getElementById('listaSugerenciasAdmin');
+  const { data: sugerencias, error } = await supabase.from('sugerencias').select('*').order('created_at', { ascending: false });
+  if (error) { cont.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">Error al cargar.</p>'; return; }
+  if (!sugerencias || sugerencias.length === 0) { cont.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">Todavía no hay sugerencias.</p>'; return; }
+
+  cont.innerHTML = sugerencias.map(s => `
+    <div class="item-notificacion">
+      <strong>${escaparHtml(mapaNombres[s.autor_id] || 'Socio')}</strong>
+      <p>${escaparHtml(s.contenido)}</p>
+      <span>${formatearFecha(s.created_at)}</span>
+    </div>
+  `).join('');
+}
+
+let conversacionActivaId = null;
+let intervaloChatAdmin = null;
+
+async function mostrarListaConversaciones() {
+  document.getElementById('tituloMensajes').textContent = 'Mensajes de socios';
+  document.getElementById('listaConversacionesAdmin').classList.remove('oculto');
+  document.getElementById('mensajesChatAdmin').classList.add('oculto');
+  document.getElementById('formEnviarMensajeAdmin').classList.add('oculto');
+  document.getElementById('bannerChatFinalizadoAdmin').classList.add('oculto');
+  document.getElementById('btnVolverConversaciones').classList.add('oculto');
+  document.getElementById('btnFinalizarChat').classList.add('oculto');
+  clearInterval(intervaloChatAdmin);
+  conversacionActivaId = null;
+
+  const { data: mensajes } = await supabase.from('mensajes_chat').select('*').order('created_at', { ascending: false });
+  const conversaciones = {};
+  (mensajes || []).forEach(m => { if (!conversaciones[m.socio_id]) conversaciones[m.socio_id] = m; });
+  const lista = Object.values(conversaciones);
+  const cont = document.getElementById('listaConversacionesAdmin');
+
+  if (lista.length === 0) { cont.innerHTML = '<p style="color:var(--gris-texto); font-size:14px;">No hay conversaciones todavía.</p>'; return; }
+
+  cont.innerHTML = lista.map(m => `
+    <div class="item-conversacion" data-socio="${m.socio_id}">
+      <strong>${escaparHtml(mapaNombres[m.socio_id] || 'Socio')}</strong>
+      <p>${escaparHtml(m.contenido).slice(0, 70)}</p>
+    </div>
+  `).join('');
+  cont.querySelectorAll('.item-conversacion').forEach(item => item.addEventListener('click', () => abrirHiloAdmin(item.dataset.socio)));
+}
+
+async function abrirHiloAdmin(socioId) {
+  conversacionActivaId = socioId;
+  document.getElementById('tituloMensajes').textContent = mapaNombres[socioId] || 'Socio';
+  document.getElementById('listaConversacionesAdmin').classList.add('oculto');
+  document.getElementById('mensajesChatAdmin').classList.remove('oculto');
+  document.getElementById('formEnviarMensajeAdmin').classList.remove('oculto');
+  document.getElementById('btnVolverConversaciones').classList.remove('oculto');
+  document.getElementById('btnFinalizarChat').classList.remove('oculto');
+
+  await cargarMensajesAdmin();
+  clearInterval(intervaloChatAdmin);
+  intervaloChatAdmin = setInterval(cargarMensajesAdmin, 6000);
+}
+
+async function cargarMensajesAdmin() {
+  if (!conversacionActivaId) return;
+  const [{ data: mensajes }, { data: estado }] = await Promise.all([
+    supabase.from('mensajes_chat').select('*').eq('socio_id', conversacionActivaId).order('created_at', { ascending: true }),
+    supabase.from('chat_estado').select('finalizado').eq('socio_id', conversacionActivaId).maybeSingle()
+  ]);
+
+  document.getElementById('bannerChatFinalizadoAdmin').classList.toggle('oculto', !estado?.finalizado);
+
+  const cont = document.getElementById('mensajesChatAdmin');
+  cont.innerHTML = (mensajes || []).map(m => `<div class="burbuja-mensaje ${m.es_admin ? 'de-admin' : 'de-socio'}">${escaparHtml(m.contenido)}</div>`).join('')
+    || '<p style="padding:12px; font-size:13px; color:var(--gris-texto);">Sin mensajes todavía.</p>';
+  cont.scrollTop = cont.scrollHeight;
+
+  const noLeidos = (mensajes || []).filter(m => !m.leida && !m.es_admin);
+  if (noLeidos.length > 0) await supabase.from('mensajes_chat').update({ leida: true }).in('id', noLeidos.map(m => m.id));
+}
+
+document.getElementById('formEnviarMensajeAdmin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('textoMensajeAdmin');
+  const texto = input.value.trim();
+  if (!texto || !conversacionActivaId) return;
+  input.value = '';
+  await supabase.from('mensajes_chat').insert({ socio_id: conversacionActivaId, remitente_id: usuario.id, es_admin: true, contenido: texto });
+  cargarMensajesAdmin();
+});
+
+document.getElementById('btnFinalizarChat').addEventListener('click', async () => {
+  if (!conversacionActivaId || !confirm('¿Dar por finalizada esta conversación?')) return;
+  await supabase.from('chat_estado').upsert({ socio_id: conversacionActivaId, finalizado: true, finalizado_en: new Date().toISOString(), finalizado_por: usuario.id });
+  cargarMensajesAdmin();
+});
+
+document.getElementById('btnVolverConversaciones').addEventListener('click', mostrarListaConversaciones);
+
+const enlacesNav = document.getElementById('enlacesNav');
+document.getElementById('btnHamburguesa').addEventListener('click', (e) => { e.stopPropagation(); enlacesNav.classList.toggle('abierto'); });
+document.addEventListener('click', (e) => { if (!enlacesNav.contains(e.target) && e.target.id !== 'btnHamburguesa') enlacesNav.classList.remove('abierto'); });
+document.getElementById('btnSalir').addEventListener('click', async (e) => { e.preventDefault(); await supabase.auth.signOut(); window.location.href = 'login.html'; });
+
+iniciar();
+</script>
+
+</body>
+</html>

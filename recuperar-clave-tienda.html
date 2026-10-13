@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recuperar Clave de la Tienda | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body class="portal">
+
+<div class="nav-superior">
+  <div class="marca">
+    <img class="logo-filial" src="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w1000" alt="Escudo Talleres Filial Capital Federal">
+    <div>
+      Talleres Filial Capital Federal
+      <span>Recuperar Clave de la Tienda</span>
+    </div>
+  </div>
+  <div class="nav-derecha">
+    <a class="acceso-directo" href="portal-de-socios.html?acceso=ok">🏠 Portal</a>
+    <button class="btn-hamburguesa" id="btnHamburguesa" aria-label="Menú">☰</button>
+    <div class="enlaces" id="enlacesNav">
+      <a class="nav-boton" href="https://example.com">Inicio</a>
+      <a class="nav-boton salir" href="#" id="btnSalir">Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+
+<div class="contenedor-portal">
+
+  <div class="seccion" id="vistaForm">
+    <h3>¿Olvidaste tu contraseña de la tienda?</h3>
+    <p style="font-size:13px; color:var(--gris-texto); margin-top:-6px;">
+      Esta es la contraseña que usás para publicar en la tienda de la filial (no la de tu portal). Definí una nueva y en unos minutos queda actualizada.
+    </p>
+    <div id="mensajeReset" class="mensaje"></div>
+    <form id="formResetTienda">
+      <div class="fila-doble">
+        <div class="campo">
+          <label for="claveNueva">Nueva contraseña</label>
+          <input type="password" id="claveNueva" required minlength="6">
+        </div>
+        <div class="campo">
+          <label for="claveNuevaConfirmar">Confirmar</label>
+          <input type="password" id="claveNuevaConfirmar" required minlength="6">
+        </div>
+      </div>
+      <button type="submit" class="principal" id="btnResetTienda">Actualizar contraseña</button>
+    </form>
+  </div>
+
+  <div class="seccion oculto" id="vistaListo">
+    <h3>¡Listo!</h3>
+    <p style="color:var(--gris-texto); font-size:14px;">
+      Tu nueva contraseña va a quedar activa en unos minutos. Si en un rato todavía no funciona, escribinos por el chat del portal.
+    </p>
+    <a href="portal-de-socios.html?acceso=ok" class="principal" style="display:block; text-align:center; text-decoration:none; margin-top:12px;">Volver al portal</a>
+  </div>
+
+</div>
+
+<script type="module">
+import { supabase } from './supabaseClient.js';
+
+let usuario = null;
+
+async function iniciar() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  usuario = session.user;
+
+  const { data: activo } = await supabase.rpc('verificar_estado_actual');
+  if (!activo) {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+    return;
+  }
+}
+
+document.getElementById('formResetTienda').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mensaje = document.getElementById('mensajeReset');
+  mensaje.className = 'mensaje';
+
+  const clave = document.getElementById('claveNueva').value;
+  const confirmar = document.getElementById('claveNuevaConfirmar').value;
+
+  if (clave !== confirmar) {
+    mensaje.className = 'mensaje error';
+    mensaje.textContent = 'Las contraseñas no coinciden.';
+    return;
+  }
+
+  const btn = document.getElementById('btnResetTienda');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  // acá va el pedido de cambio de clave de la tienda (no se incluye en el demo)
+  const error = null;
+
+  btn.disabled = false;
+  btn.textContent = 'Actualizar contraseña';
+
+  if (error) {
+    mensaje.className = 'mensaje error';
+    mensaje.textContent = 'No pudimos procesar el pedido. Probá de nuevo.';
+    return;
+  }
+
+  document.getElementById('vistaForm').classList.add('oculto');
+  document.getElementById('vistaListo').classList.remove('oculto');
+});
+
+const enlacesNav = document.getElementById('enlacesNav');
+document.getElementById('btnHamburguesa').addEventListener('click', (e) => {
+  e.stopPropagation();
+  enlacesNav.classList.toggle('abierto');
+});
+document.addEventListener('click', (e) => {
+  if (!enlacesNav.contains(e.target) && e.target.id !== 'btnHamburguesa') {
+    enlacesNav.classList.remove('abierto');
+  }
+});
+
+document.getElementById('btnSalir').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+iniciar();
+</script>
+
+</body>
+</html>

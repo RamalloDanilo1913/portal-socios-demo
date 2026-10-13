@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiero Vender | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body class="portal">
+
+<div class="nav-superior">
+  <div class="marca">
+    <img class="logo-filial" src="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w1000" alt="Escudo Talleres Filial Capital Federal">
+    <div>
+      Talleres Filial Capital Federal
+      <span>Quiero Vender</span>
+    </div>
+  </div>
+  <div class="nav-derecha">
+    <a class="acceso-directo" href="portal-de-socios.html?acceso=ok">🏠 Portal</a>
+    <button class="btn-hamburguesa" id="btnHamburguesa" aria-label="Menú">☰</button>
+    <div class="enlaces" id="enlacesNav">
+      <a class="nav-boton" href="https://example.com">Inicio</a>
+      <a class="nav-boton" href="foro.html">Foro de socios</a>
+      <a class="nav-boton salir" href="#" id="btnSalir">Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+
+<div class="contenedor-portal">
+
+  <div class="seccion" id="vistaForm">
+    <h3>Quiero vender en la tienda de la filial</h3>
+    <div id="mensajeForm" class="mensaje"></div>
+    <form id="formVender">
+      <div class="campo">
+        <label for="tipoVenta">¿Qué querés vender?</label>
+        <select id="tipoVenta" required>
+          <option value="">Elegí una opción</option>
+          <option value="PRODUCTO">Un producto</option>
+          <option value="SERVICIO">Un servicio</option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="descripcionVenta">Descripción de tu producto o emprendimiento</label>
+        <textarea id="descripcionVenta" required placeholder="Contanos qué querés vender..."></textarea>
+      </div>
+
+      <div class="campo">
+        <label for="instagramVenta">Instagram / redes de tu emprendimiento (opcional)</label>
+        <input type="text" id="instagramVenta" placeholder="@tu_emprendimiento">
+      </div>
+
+      <div class="campo">
+        <label for="aliasVenta">Alias</label>
+        <input type="text" id="aliasVenta" required>
+      </div>
+
+      <div class="campo">
+        <label for="cbuVenta">CBU / CVU</label>
+        <input type="text" id="cbuVenta" required inputmode="numeric">
+      </div>
+
+      <div class="campo">
+        <label for="direccionVenta">Dirección</label>
+        <input type="text" id="direccionVenta" required>
+      </div>
+
+      <div class="fila-doble">
+        <div class="campo">
+          <label for="claveTienda">Contraseña para la tienda</label>
+          <input type="password" id="claveTienda" required minlength="6" autocomplete="new-password">
+        </div>
+        <div class="campo">
+          <label for="claveTiendaConfirmar">Confirmar contraseña</label>
+          <input type="password" id="claveTiendaConfirmar" required minlength="6" autocomplete="new-password">
+        </div>
+      </div>
+      <p style="font-size:12px; color:var(--gris-texto); margin-top:-10px;">
+        Esta contraseña es específica para el sistema de la tienda, no tiene relación con tu contraseña del portal.
+      </p>
+
+      <button type="submit" class="principal" id="btnEnviarVenta">Enviar solicitud</button>
+    </form>
+  </div>
+
+  <div class="seccion oculto" id="vistaPendiente">
+    <h3>Tu solicitud está en proceso de aprobación</h3>
+    <p style="color:var(--gris-texto); font-size:14px;">
+      Ya recibimos tu solicitud para vender en la tienda de la filial. Te vamos a avisar apenas sea aprobada.
+    </p>
+    <p style="color:var(--gris-texto); font-size:14px;">
+      Si tenés algún inconveniente o querés hacer una consulta, escribinos por el chat del portal.
+    </p>
+    <a href="portal-de-socios.html?acceso=ok&chat=1" class="principal" style="display:block; text-align:center; text-decoration:none; margin-top:12px;">
+      Abrir chat con la filial
+    </a>
+    <a href="portal-de-socios.html?acceso=ok" class="secundario" style="display:block; text-align:center; text-decoration:none; margin-top:10px;">
+      Volver al portal
+    </a>
+  </div>
+
+  <div class="seccion oculto" id="vistaYaAprobado">
+    <h3>¡Ya sos vendedor aprobado!</h3>
+    <p style="color:var(--gris-texto); font-size:14px;">Podés publicar directamente en la tienda de la filial.</p>
+    <a href="https://example.com" class="principal" style="display:block; text-align:center; text-decoration:none; margin-top:12px;">
+      Ir a vender
+    </a>
+    <a href="recuperar-clave-tienda.html" class="enlace-secundario">¿Olvidaste tu contraseña de la tienda?</a>
+  </div>
+
+</div>
+
+<script type="module">
+import { supabase } from './supabaseClient.js';
+
+let usuario = null;
+
+async function iniciar() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  usuario = session.user;
+
+  const { data: activo } = await supabase.rpc('verificar_estado_actual');
+  if (!activo) {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const { data: estadoVendedor } = await supabase.rpc('mi_estado_vendedor').single();
+  if (estadoVendedor?.vendedor_activo) {
+    mostrarVista('vistaYaAprobado');
+    return;
+  }
+
+  const { data: solicitud } = await supabase
+    .from('solicitudes_vendedores')
+    .select('id')
+    .eq('socio_id', usuario.id)
+    .maybeSingle();
+
+  if (solicitud) {
+    mostrarVista('vistaPendiente');
+    return;
+  }
+
+  mostrarVista('vistaForm');
+}
+
+function mostrarVista(id) {
+  ['vistaForm', 'vistaPendiente', 'vistaYaAprobado'].forEach(v => {
+    document.getElementById(v).classList.toggle('oculto', v !== id);
+  });
+}
+
+document.getElementById('formVender').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const mensaje = document.getElementById('mensajeForm');
+  mensaje.className = 'mensaje';
+  mensaje.textContent = '';
+
+  const clave = document.getElementById('claveTienda').value;
+  const claveConfirmar = document.getElementById('claveTiendaConfirmar').value;
+
+  if (clave !== claveConfirmar) {
+    mensaje.className = 'mensaje error';
+    mensaje.textContent = 'Las contraseñas no coinciden.';
+    return;
+  }
+
+  const btn = document.getElementById('btnEnviarVenta');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const { error } = await supabase.from('solicitudes_vendedores').insert({
+    socio_id: usuario.id,
+    tipo: document.getElementById('tipoVenta').value,
+    descripcion: document.getElementById('descripcionVenta').value.trim(),
+    instagram: document.getElementById('instagramVenta').value.trim() || null,
+    alias: document.getElementById('aliasVenta').value.trim(),
+    cbu_cvu: document.getElementById('cbuVenta').value.trim(),
+    direccion: document.getElementById('direccionVenta').value.trim()
+    // acá va la clave de la tienda (no se incluye en el demo)
+  });
+
+  if (error) {
+    mensaje.className = 'mensaje error';
+    mensaje.textContent = error.code === '23505'
+      ? 'Ya tenés una solicitud enviada.'
+      : 'No pudimos enviar tu solicitud. Probá de nuevo.';
+    btn.disabled = false;
+    btn.textContent = 'Enviar solicitud';
+    return;
+  }
+
+  mostrarVista('vistaPendiente');
+});
+
+const enlacesNav = document.getElementById('enlacesNav');
+document.getElementById('btnHamburguesa').addEventListener('click', (e) => {
+  e.stopPropagation();
+  enlacesNav.classList.toggle('abierto');
+});
+document.addEventListener('click', (e) => {
+  if (!enlacesNav.contains(e.target) && e.target.id !== 'btnHamburguesa') {
+    enlacesNav.classList.remove('abierto');
+  }
+});
+
+document.getElementById('btnSalir').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+iniciar();
+</script>
+
+</body>
+</html>

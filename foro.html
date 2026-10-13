@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foro de Socios | Talleres Filial Capital Federal</title>
+<link rel="icon" type="image/png" href="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w64-h64-p">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body class="portal">
+
+<div class="nav-superior">
+  <div class="marca">
+    <img class="logo-filial" src="https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w1000" alt="Escudo Talleres Filial Capital Federal">
+    <div>
+      Talleres Filial Capital Federal
+      <span>Foro de Socios</span>
+    </div>
+  </div>
+  <div class="nav-derecha">
+    <a class="acceso-directo" href="portal-de-socios.html?acceso=ok">🏠 Portal</a>
+    <div class="campanita-contenedor">
+      <button class="campanita" id="btnCampanita" aria-label="Notificaciones">
+        🔔<span class="badge-campanita oculto" id="badgeCampanita">0</span>
+      </button>
+      <div class="panel-notificaciones" id="panelNotificaciones">
+        <div class="panel-notificaciones-header">Notificaciones</div>
+        <div id="listaNotificaciones">
+          <p style="padding:16px; font-size:13px; color:var(--gris-texto);">Cargando...</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn-hamburguesa" id="btnHamburguesa" aria-label="Menú">☰</button>
+    <div class="enlaces" id="enlacesNav">
+      <a class="nav-boton" href="https://example.com">Inicio</a>
+      <a class="nav-boton" href="https://example.com">Tienda</a>
+      <a class="nav-boton" href="https://example.com">Viajes</a>
+      <a class="nav-boton salir" href="#" id="btnSalir">Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+
+<div class="contenedor-portal">
+
+  <div class="seccion">
+    <h3>
+      Foro de socios
+      <button class="secundario" id="btnNuevoPost">+ Nueva publicación</button>
+    </h3>
+    <form id="formNuevoPost" class="oculto" style="margin-top:16px;">
+      <div class="campo">
+        <label for="tituloPost">Título</label>
+        <input type="text" id="tituloPost" required>
+      </div>
+      <div class="campo">
+        <label for="contenidoPost">Contenido</label>
+        <textarea id="contenidoPost" required></textarea>
+      </div>
+      <button type="submit" class="principal">Publicar</button>
+    </form>
+  </div>
+
+  <div id="listaForo">
+    <p style="color:var(--gris-texto); font-size:14px;">Cargando publicaciones...</p>
+  </div>
+
+</div>
+
+<script type="module">
+import { supabase, urlBlobatar } from './supabaseClient.js';
+
+let usuario = null;
+let esAdmin = false;
+let mapaNombres = {};
+
+function escaparHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto;
+  return div.innerHTML;
+}
+
+function formatearFecha(iso) {
+  const f = new Date(iso);
+  return f.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+async function iniciar() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  usuario = session.user;
+
+  const { data: activo } = await supabase.rpc('verificar_estado_actual');
+  if (!activo) {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', usuario.id).single();
+  esAdmin = perfil?.rol === 'admin';
+
+  const { data: nombres } = await supabase.rpc('perfiles_publicos');
+  mapaNombres = {};
+  (nombres || []).forEach(p => { mapaNombres[p.id] = p.nombre_completo; });
+
+  await cargarForo();
+  pedirPermisoNotificaciones();
+  await cargarNotificaciones();
+  setInterval(cargarNotificaciones, 45000);
+}
+
+async function cargarForo() {
+  const contenedor = document.getElementById('listaForo');
+
+  const { data: posts, error } = await supabase
+    .from('publicaciones')
+    .select('*')
+    .eq('tipo', 'foro')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    contenedor.innerHTML = '<p style="color:var(--rojo-alerta); font-size:14px;">No pudimos cargar el foro.</p>';
+    return;
+  }
+
+  if (!posts || posts.length === 0) {
+    contenedor.innerHTML = '<div class="seccion"><p style="color:var(--gris-texto); font-size:14px; margin:0;">Todavía no hay publicaciones en el foro. ¡Sé el primero!</p></div>';
+    return;
+  }
+
+  const { data: todasRespuestas } = await supabase
+    .from('respuestas_foro')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  contenedor.innerHTML = posts.map(post => {
+    const respuestas = (todasRespuestas || []).filter(r => r.publicacion_id === post.id);
+    const esDueño = post.autor_id === usuario.id;
+
+    return `
+      <div class="seccion tarjeta-foro" data-id="${post.id}">
+        <div class="cabecera-post">
+          <div class="avatar-foro"><img src="${urlBlobatar(post.autor_id, 38)}" alt="" loading="lazy"></div>
+          <div>
+            <h4 class="titulo-post">${escaparHtml(post.titulo)}</h4>
+            <div class="meta">${mapaNombres[post.autor_id] || 'Socio'} · ${formatearFecha(post.created_at)}</div>
+          </div>
+        </div>
+        <p style="margin:0 0 12px; font-size:14px; color:var(--gris-texto); white-space:pre-wrap;">${escaparHtml(post.contenido)}</p>
+
+        ${esAdmin ? `
+          <div class="acciones-admin" style="margin-bottom:12px;">
+            <button class="borrar" data-borrar-post="${post.id}">Borrar publicación</button>
+          </div>
+        ` : ''}
+
+        <button class="secundario" data-toggle-respuestas="${post.id}" style="margin-bottom:12px;">
+          💬 ${respuestas.length} ${respuestas.length === 1 ? 'respuesta' : 'respuestas'}
+        </button>
+
+        <div class="respuestas-foro oculto" id="respuestas-${post.id}">
+          ${respuestas.map(r => `
+            <div class="item-respuesta">
+              <div class="meta">${mapaNombres[r.autor_id] || 'Socio'} · ${formatearFecha(r.created_at)}</div>
+              <p>${escaparHtml(r.contenido)}</p>
+            </div>
+          `).join('') || '<p style="font-size:13px; color:var(--gris-texto);">Sin respuestas todavía.</p>'}
+
+          <form class="form-respuesta" data-post="${post.id}">
+            <textarea placeholder="Escribí una respuesta..." required style="min-height:60px;"></textarea>
+            <button type="submit" class="principal" style="margin-top:8px;">Responder</button>
+          </form>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  contenedor.querySelectorAll('[data-toggle-respuestas]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('respuestas-' + btn.dataset.toggleRespuestas).classList.toggle('oculto');
+    });
+  });
+
+  contenedor.querySelectorAll('.form-respuesta').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const textarea = form.querySelector('textarea');
+      const { error } = await supabase.from('respuestas_foro').insert({
+        publicacion_id: form.dataset.post,
+        autor_id: usuario.id,
+        contenido: textarea.value.trim()
+      });
+      if (!error) { textarea.value = ''; cargarForo(); }
+    });
+  });
+
+  if (esAdmin) {
+    contenedor.querySelectorAll('[data-borrar-post]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const motivo = prompt('¿Por qué motivo vas a eliminar esta publicación? (obligatorio, el socio va a recibir este mensaje)');
+        if (motivo === null) return;
+        if (motivo.trim().length === 0) { alert('Tenés que indicar un motivo.'); return; }
+
+        const { error } = await supabase.rpc('eliminar_publicacion_foro', {
+          p_id: btn.dataset.borrarPost,
+          p_motivo: motivo.trim()
+        });
+
+        if (error) { alert('No pudimos borrar la publicación: ' + error.message); return; }
+        cargarForo();
+      });
+    });
+  }
+}
+
+document.getElementById('btnNuevoPost').addEventListener('click', () => {
+  document.getElementById('formNuevoPost').classList.toggle('oculto');
+});
+
+document.getElementById('formNuevoPost').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const titulo = document.getElementById('tituloPost').value.trim();
+  const contenido = document.getElementById('contenidoPost').value.trim();
+
+  const { error } = await supabase.from('publicaciones').insert({
+    tipo: 'foro', titulo, contenido, autor_id: usuario.id
+  });
+
+  if (!error) {
+    document.getElementById('formNuevoPost').reset();
+    document.getElementById('formNuevoPost').classList.add('oculto');
+    cargarForo();
+  }
+});
+
+const idsNotificados = new Set(JSON.parse(localStorage.getItem('notis_vistas_' + usuario?.id) || '[]'));
+
+function pedirPermisoNotificaciones() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+async function cargarNotificaciones() {
+  const { data: notis } = await supabase
+    .from('notificaciones')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    (notis || []).forEach(n => {
+      if (!n.leida && !idsNotificados.has(n.id)) {
+        new Notification(n.titulo, {
+          body: n.mensaje || '',
+          icon: 'https://drive.google.com/thumbnail?id=1EMSCiSC5Y9rK-DcL8rpYyc-2X_gdoj7_&sz=w128'
+        });
+        idsNotificados.add(n.id);
+      }
+    });
+    localStorage.setItem('notis_vistas_' + usuario.id, JSON.stringify([...idsNotificados]));
+  }
+
+  const lista = document.getElementById('listaNotificaciones');
+  const badge = document.getElementById('badgeCampanita');
+  const noLeidas = (notis || []).filter(n => !n.leida).length;
+
+  if (noLeidas > 0) {
+    badge.textContent = noLeidas;
+    badge.classList.remove('oculto');
+  } else {
+    badge.classList.add('oculto');
+  }
+
+  if (!notis || notis.length === 0) {
+    lista.innerHTML = '<p style="padding:16px; font-size:13px; color:var(--gris-texto);">No tenés notificaciones todavía.</p>';
+    return;
+  }
+
+  lista.innerHTML = notis.map(n => `
+    <div class="item-notificacion ${n.leida ? '' : 'no-leida'}" data-id="${n.id}" data-enlace="${n.enlace || ''}">
+      <strong>${escaparHtml(n.titulo)}</strong>
+      ${n.mensaje ? `<p>${escaparHtml(n.mensaje)}</p>` : ''}
+      <span>${formatearFecha(n.created_at)}</span>
+    </div>
+  `).join('');
+
+  lista.querySelectorAll('.item-notificacion').forEach(item => {
+    item.addEventListener('click', async () => {
+      await supabase.from('notificaciones').update({ leida: true }).eq('id', item.dataset.id);
+      const enlace = item.dataset.enlace;
+      if (enlace && enlace !== 'foro.html') window.location.href = enlace;
+      else cargarNotificaciones();
+    });
+  });
+}
+
+const panelNotificaciones = document.getElementById('panelNotificaciones');
+document.getElementById('btnCampanita').addEventListener('click', (e) => {
+  e.stopPropagation();
+  panelNotificaciones.classList.toggle('abierto');
+});
+document.addEventListener('click', (e) => {
+  if (!panelNotificaciones.contains(e.target)) panelNotificaciones.classList.remove('abierto');
+});
+
+const enlacesNav = document.getElementById('enlacesNav');
+document.getElementById('btnHamburguesa').addEventListener('click', (e) => {
+  e.stopPropagation();
+  enlacesNav.classList.toggle('abierto');
+});
+document.addEventListener('click', (e) => {
+  if (!enlacesNav.contains(e.target) && e.target.id !== 'btnHamburguesa') {
+    enlacesNav.classList.remove('abierto');
+  }
+});
+
+document.getElementById('btnSalir').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  window.location.href = 'login.html';
+});
+
+iniciar();
+</script>
+
+</body>
+</html>
